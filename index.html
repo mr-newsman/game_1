@@ -534,7 +534,7 @@
         function activateEmojiRain() {
             settings.emojiRainActive = true;
             document.body.classList.add('boom-mode');
-            document.getElementById('modeToggle').textContent = '💥 EMOJI RAIN ACTIVE 💥';
+            document.getElementById('modeToggle').textContent = '💥 EMOJI RAIN ACTIVE 💥 (Click to Stop)';
 
             // Start emoji rain
             if (emojiInterval) clearInterval(emojiInterval);
@@ -545,11 +545,7 @@
                 setTimeout(() => createEmoji(), i * 50);
             }
 
-            // Auto-deactivate after 10 seconds
-            if (boomModeTimeout) clearTimeout(boomModeTimeout);
-            boomModeTimeout = setTimeout(() => {
-                deactivateEmojiRain();
-            }, 10000);
+            // No auto-deactivate - rain continues until manually stopped
         }
 
         function deactivateEmojiRain() {
