@@ -197,6 +197,8 @@
             user-select: none;
             pointer-events: auto;
             z-index: 100;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .emoji.small {
@@ -284,6 +286,26 @@
         .mode-toggle button:hover {
             background: #e6c157;
         }
+
+        #fullscreenBtn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+            border: 1px solid #d4af37;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 1001;
+            transition: all 0.3s;
+        }
+
+        #fullscreenBtn:hover {
+            background: rgba(212, 175, 55, 0.4);
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -325,6 +347,7 @@
         </div>
     </div>
 
+    <button id="fullscreenBtn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
     <div id="authorName">Benjamin L. Miles</div>
     <div id="controlHint">Ctrl+Space - Controls</div>
 
@@ -477,7 +500,7 @@
 
             starfield.appendChild(element);
 
-            element.addEventListener('click', (e) => {
+            const handlePop = (e) => {
                 e.stopPropagation();
 
                 // Get current position of the emoji
@@ -497,6 +520,13 @@
                         starfield.removeChild(element);
                     }
                 }, 400);
+            };
+
+            // Add both click and touch events
+            element.addEventListener('click', handlePop);
+            element.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent default touch behavior
+                handlePop(e);
             });
 
             const removeTimeout = setTimeout(() => {
@@ -568,14 +598,22 @@
             }
         }
 
-        // Global click detection for rapid clicks
-        document.addEventListener('click', (e) => {
+        // Global click/touch detection for rapid clicks/taps
+        const handleRapidTap = (e) => {
             const now = Date.now();
             clickTimes.push(now);
             clickTimes = clickTimes.filter(t => now - t < 800);
 
             if (clickTimes.length >= 4 && !settings.emojiRainActive) {
                 activateEmojiRain();
+            }
+        };
+
+        document.addEventListener('click', handleRapidTap);
+        document.addEventListener('touchstart', (e) => {
+            // Only count touch if not on an emoji
+            if (!e.target.classList.contains('emoji')) {
+                handleRapidTap(e);
             }
         });
 
@@ -673,6 +711,30 @@
 
         // Update mode toggle button text
         document.getElementById('modeToggle').textContent = 'Click 4 Times Fast for Emoji Rain! 🎉';
+
+        // Fullscreen functionality
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+                document.getElementById('fullscreenBtn').textContent = '◱';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.getElementById('fullscreenBtn').textContent = '⛶';
+                }
+            }
+        }
+
+        // Update fullscreen button on fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                document.getElementById('fullscreenBtn').textContent = '◱';
+            } else {
+                document.getElementById('fullscreenBtn').textContent = '⛶';
+            }
+        });
     </script>
 </body>
 </html>
