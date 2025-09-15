@@ -289,22 +289,25 @@
 
         #fullscreenBtn {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(212, 175, 55, 0.2);
+            top: 10px;
+            right: 10px;
+            background: rgba(212, 175, 55, 0.3);
             color: #d4af37;
-            border: 1px solid #d4af37;
-            border-radius: 5px;
-            padding: 8px 12px;
+            border: 2px solid #d4af37;
+            border-radius: 8px;
+            padding: 10px 15px;
             cursor: pointer;
-            font-size: 20px;
-            z-index: 1001;
+            font-size: 24px;
+            z-index: 9999;
             transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
         }
 
         #fullscreenBtn:hover {
-            background: rgba(212, 175, 55, 0.4);
+            background: rgba(212, 175, 55, 0.5);
             transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
         }
     </style>
 </head>
@@ -495,7 +498,7 @@
             element.style.left = `${x}px`;
             element.style.top = '-50px';
 
-            const fallSpeed = 3 + Math.random() * 4;
+            const fallSpeed = 6 + Math.random() * 6; // Slower: 6-12 seconds
             element.style.animation = `fall ${fallSpeed}s linear`;
 
             starfield.appendChild(element);
@@ -546,7 +549,7 @@
         }
 
         function manageEmojis() {
-            if (settings.emojiRainActive && activeEmojis.size < 30) {
+            if (settings.emojiRainActive && activeEmojis.size < 20) { // Reduced max from 30 to 20
                 createEmoji();
             }
         }
@@ -566,9 +569,9 @@
             document.body.classList.add('boom-mode');
             document.getElementById('modeToggle').textContent = '💥 EMOJI RAIN ACTIVE 💥 (Click to Stop)';
 
-            // Start emoji rain
+            // Start emoji rain (slower spawn rate)
             if (emojiInterval) clearInterval(emojiInterval);
-            emojiInterval = setInterval(manageEmojis, 100);
+            emojiInterval = setInterval(manageEmojis, 250); // Reduced from 100ms to 250ms
 
             // Create initial burst
             for (let i = 0; i < 10; i++) {
