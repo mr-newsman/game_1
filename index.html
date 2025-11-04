@@ -2,289 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Egyptian Hieroglyph Starfield</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Egyptian Hieroglyph Starfield - Ultra Optimized</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&family=Noto+Sans+Cuneiform&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: #000;
             overflow: hidden;
-            font-family: 'Noto Sans Egyptian Hieroglyphs', sans-serif;
             width: 100vw;
             height: 100vh;
-            position: relative;
+            position: fixed;
+            touch-action: none;
         }
 
-        #starfield {
-            position: absolute;
-            top: 0;
-            left: 0;
+        #canvas {
+            display: block;
             width: 100%;
             height: 100%;
-        }
-
-        .hieroglyph {
-            position: absolute;
-            color: #d4af37;
-            text-shadow:
-                0 0 10px rgba(212, 175, 55, 0.5),
-                0 0 20px rgba(212, 175, 55, 0.3),
-                0 0 30px rgba(212, 175, 55, 0.2),
-                0 0 40px rgba(212, 175, 55, 0.1);
-            animation: pulse 4s ease-in-out infinite;
-            transition: opacity 1s ease-in-out;
-            user-select: none;
-            pointer-events: none;
-        }
-
-        .hieroglyph.small {
-            font-size: 20px;
-        }
-
-        .hieroglyph.medium {
-            font-size: 35px;
-        }
-
-        .hieroglyph.large {
-            font-size: 50px;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 0.3;
-                transform: scale(0.95);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.5);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                transform: scale(1);
-            }
-            to {
-                opacity: 0;
-                transform: scale(0.5);
-            }
-        }
-
-        #controls {
-            position: fixed;
-            top: -300px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(20, 20, 20, 0.95);
-            border: 1px solid #d4af37;
-            border-radius: 0 0 10px 10px;
-            padding: 20px;
-            color: #d4af37;
-            transition: top 0.3s ease-in-out;
-            z-index: 1000;
-            min-width: 350px;
-            font-family: Arial, sans-serif;
-        }
-
-        #controls.active {
-            top: 0;
-        }
-
-        #controls h3 {
-            margin-bottom: 15px;
-            text-align: center;
-            border-bottom: 1px solid #d4af37;
-            padding-bottom: 10px;
-        }
-
-        .control-group {
-            margin: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .control-group label {
-            flex: 1;
-            font-size: 14px;
-        }
-
-        .control-group input[type="range"] {
-            flex: 1;
-            margin: 0 10px;
-        }
-
-        .control-group span {
-            min-width: 40px;
-            text-align: right;
-            font-size: 14px;
-        }
-
-        .preset-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: center;
-        }
-
-        .preset-buttons button {
-            background: #d4af37;
-            color: #000;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-
-        .preset-buttons button:hover {
-            background: #e6c157;
-        }
-
-        #controlHint {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            color: rgba(212, 175, 55, 0.3);
-            font-size: 12px;
-            font-family: Arial, sans-serif;
-            transition: color 0.3s;
-        }
-
-        #controlHint:hover {
-            color: rgba(212, 175, 55, 0.7);
-        }
-
-        #authorName {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            color: rgba(212, 175, 55, 0.3);
-            font-size: 12px;
-            font-family: Arial, sans-serif;
-            transition: color 0.3s;
-        }
-
-        #authorName:hover {
-            color: rgba(212, 175, 55, 0.7);
-        }
-
-        .emoji {
-            position: absolute;
-            font-size: 30px;
-            cursor: pointer;
-            user-select: none;
-            pointer-events: auto;
-            z-index: 100;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-        }
-
-        .emoji.small {
-            font-size: 24px;
-        }
-
-        .emoji.medium {
-            font-size: 36px;
-        }
-
-        .emoji.large {
-            font-size: 48px;
-        }
-
-        @keyframes fall {
-            to {
-                transform: translateY(calc(100vh + 100px));
-            }
-        }
-
-        @keyframes pop {
-            0% {
-                transform: scale(1) rotate(0deg);
-            }
-            50% {
-                transform: scale(2.5) rotate(180deg);
-            }
-            100% {
-                transform: scale(0) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        .boom {
-            position: absolute;
-            font-size: 60px;
-            z-index: 200;
-            pointer-events: none;
-            animation: boom 0.6s ease-out forwards;
-        }
-
-        @keyframes boom {
-            0% {
-                transform: scale(0) rotate(0deg);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.5) rotate(180deg);
-            }
-            100% {
-                transform: scale(2) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        .boom-mode {
-            animation: shake 0.5s infinite;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .mode-toggle {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #d4af37;
-            text-align: center;
-        }
-
-        .mode-toggle button {
-            background: #d4af37;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-            width: 100%;
-        }
-
-        .mode-toggle button:hover {
-            background: #e6c157;
         }
 
         #fullscreenBtn {
@@ -302,442 +46,606 @@
             transition: all 0.3s;
             font-weight: bold;
             box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            touch-action: manipulation;
         }
 
         #fullscreenBtn:hover {
             background: rgba(212, 175, 55, 0.5);
             transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        #fps {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: rgba(212, 175, 55, 0.5);
+            font-family: monospace;
+            font-size: 14px;
+            z-index: 9999;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div id="starfield"></div>
-
-    <div id="controls">
-        <h3>Ancient Sky Controls</h3>
-        <div class="control-group">
-            <label>Cycling Speed:</label>
-            <input type="range" id="cyclingSpeed" min="50" max="500" value="200">
-            <span id="cyclingSpeedValue">200</span>
-        </div>
-        <div class="control-group">
-            <label>Glow Intensity:</label>
-            <input type="range" id="glowIntensity" min="1" max="10" value="5">
-            <span id="glowIntensityValue">5</span>
-        </div>
-        <div class="control-group">
-            <label>Active Glyphs:</label>
-            <input type="range" id="activeGlyphs" min="5" max="50" value="20">
-            <span id="activeGlyphsValue">20</span>
-        </div>
-        <div class="control-group">
-            <label>Fade Speed (s):</label>
-            <input type="range" id="fadeSpeed" min="1" max="10" value="3">
-            <span id="fadeSpeedValue">3</span>
-        </div>
-        <div class="control-group">
-            <label>Pulse Duration (s):</label>
-            <input type="range" id="pulseDuration" min="2" max="10" value="4">
-            <span id="pulseDurationValue">4</span>
-        </div>
-        <div class="preset-buttons">
-            <button onclick="applyPreset('calm')">Calm Temple</button>
-            <button onclick="applyPreset('active')">Active Ritual</button>
-        </div>
-        <div class="mode-toggle">
-            <button id="modeToggle" onclick="toggleMode()">Click 4 Times Fast for Emoji Rain! 🎉</button>
-        </div>
-    </div>
-
-    <button id="fullscreenBtn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
-    <div id="authorName">Benjamin L. Miles</div>
-    <div id="controlHint">Ctrl+Space - Controls</div>
+    <canvas id="canvas"></canvas>
+    <button id="fullscreenBtn" onclick="toggleFullscreen()">⛶</button>
+    <div id="fps"></div>
 
     <script>
-        const emojis = [
-            '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃',
-            '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙',
-            '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔',
-            '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔',
-            '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵',
-            '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕',
-            '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧',
-            '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓',
-            '😩', '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿', '💀'
-        ];
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { 
+            alpha: false,
+            desynchronized: true, // Better performance on some devices
+            willReadFrequently: false
+        });
+        
+        let width, height, dpr;
+        
+        function resizeCanvas() {
+            dpr = window.devicePixelRatio || 1;
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            ctx.scale(dpr, dpr);
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-        const hieroglyphs = [
-            '𓀀', '𓀁', '𓀂', '𓀃', '𓀄', '𓀅', '𓀆', '𓀇', '𓀈', '𓀉',
-            '𓀊', '𓀋', '𓀌', '𓀍', '𓀎', '𓀏', '𓀐', '𓀑', '𓀒', '𓀓',
-            '𓀔', '𓀕', '𓀖', '𓀗', '𓀘', '𓀙', '𓀚', '𓀛', '𓀜', '𓀝',
-            '𓁀', '𓁁', '𓁂', '𓁃', '𓁄', '𓁅', '𓁆', '𓁇', '𓁈', '𓁉',
-            '𓂀', '𓂁', '𓂂', '𓂃', '𓂄', '𓂅', '𓂆', '𓂇', '𓂈', '𓂉',
-            '𓃀', '𓃁', '𓃂', '𓃃', '𓃄', '𓃅', '𓃆', '𓃇', '𓃈', '𓃉',
-            '𓄀', '𓄁', '𓄂', '𓄃', '𓄄', '𓄅', '𓄆', '𓄇', '𓄈', '𓄉',
-            '𓅀', '𓅁', '𓅂', '𓅃', '𓅄', '𓅅', '𓅆', '𓅇', '𓅈', '𓅉',
-            '𓆀', '𓆁', '𓆂', '𓆃', '𓆄', '𓆅', '𓆆', '𓆇', '𓆈', '𓆉',
-            '𓇀', '𓇁', '𓇂', '𓇃', '𓇄', '𓇅', '𓇆', '𓇇', '𓇈', '𓇉',
-            '𓈀', '𓈁', '𓈂', '𓈃', '𓈄', '𓈅', '𓈆', '𓈇', '𓈈', '𓈉',
-            '𓉀', '𓉁', '𓉂', '𓉃', '𓉄', '𓉅', '𓉆', '𓉇', '𓉈', '𓉉'
-        ];
+        // Egyptian Hieroglyphs
+        const EXCLUDED_GLYPHS = [0x130B8, 0x130B9, 0x130BA];
+        const hieroglyphs = [];
+        for (let i = 0x13000; i <= 0x1342E; i++) {
+            if (!EXCLUDED_GLYPHS.includes(i)) {
+                hieroglyphs.push(String.fromCodePoint(i));
+            }
+        }
 
-        const settings = {
-            cyclingSpeed: 200,
-            glowIntensity: 5,
-            activeGlyphs: 20,
-            fadeSpeed: 3,
-            pulseDuration: 4,
-            emojiRainActive: false
+        // Sumerian Cuneiform symbols
+        const cuneiform = [];
+        for (let i = 0x12000; i <= 0x123FF; i++) {
+            cuneiform.push(String.fromCodePoint(i));
+        }
+        for (let i = 0x12400; i <= 0x1247F; i++) {
+            cuneiform.push(String.fromCodePoint(i));
+        }
+
+        // Safe, school-appropriate emoji ranges with exclusions
+        const EMOJI_RANGES = [
+            [0x1F600, 0x1F64F], // Emoticons
+            [0x1F680, 0x1F6C5], // Transport and Map Symbols
+            [0x1F6CB, 0x1F6D2], // Transport and Map Symbols (continued)
+            [0x1F6E0, 0x1F6EC], // Transport and Map Symbols (continued)
+            [0x1F910, 0x1F96B], // Supplemental Symbols
+            [0x1F980, 0x1F9E0], // Supplemental Symbols and Pictographs
+            [0x1F400, 0x1F43E], // Animals
+            [0x1F440, 0x1F450], // Body parts and hand gestures
+            [0x1F300, 0x1F3FA], // Miscellaneous Symbols (weather, nature, sports)
+            [0x1F330, 0x1F37D], // Food and Drink
+            [0x2600, 0x26FF],   // Miscellaneous Symbols (sun, stars, etc)
+            [0x2700, 0x27BF],   // Dingbats
+        ];
+        
+        // Blocked emoji code points (inappropriate for school)
+        const BLOCKED_EMOJI = new Set([
+            // Pregnant people variants
+            0x1F930, 0x1FAC3, 0x1FAC4, 0x1FAC5,
+            // Same-sex couple/family emojis (blocking ranges)
+            0x1F468, 0x1F469, // When combined with ZWJ sequences
+            0x1F46A, 0x1F46B, 0x1F46C, 0x1F46D, // Couples/families
+            // Alcohol/drugs
+            0x1F37B, 0x1F37A, 0x1F377, 0x1F378, 0x1F379, 0x1F37C,
+            0x1F48A, // Pill
+            0x1F6AC, // Cigarette
+            // Weapons
+            0x1F52B, 0x1F5E1, 0x2694, 0x1F3F9, 0x1F4A3, 0x1F9E8,
+            // Middle finger and inappropriate gestures
+            0x1F595, 0x1F446, 0x1F447, 0x1F448, 0x1F449,
+            // Eggplant, peach (often used inappropriately)
+            0x1F346, 0x1F351,
+            // Religious symbols that might be controversial
+            0x262A, 0x262E, 0x262F, 0x2626, 0x2627, 0x1F52F, 0x1F54B, 0x1F54C, 0x1F54D, 0x1F54E,
+            // Devil faces
+            0x1F608, 0x1F47F,
+            // Skulls
+            0x1F480, 0x2620, 0x1F571,
+            // Kiss/lips
+            0x1F48B, 0x1F444, 0x1F48F, 0x1F491,
+            // Controversial hand gestures
+            0x1F919, 0x1F918, 0x1F91F, 0x1F91E, 0x1F91C,
+            // Potentially suggestive
+            0x1F445, // Tongue
+            0x1F4A6, // Sweat droplets
+            0x1F52E, // Crystal ball
+            // Money (gambling association)
+            0x1F4B0, 0x1F4B4, 0x1F4B5, 0x1F4B6, 0x1F4B7, 0x1F4B8, 0x1F911,
+            // Clown (can be used for bullying)
+            0x1F921,
+            // Potentially scary
+            0x1F47B, 0x1F47D, 0x1F47E, 0x1F916, 0x1F479, 0x1F47A,
+        ]);
+        
+        // Generate emoji array from ranges, excluding blocked ones
+        function getRandomSafeEmoji() {
+            let attempts = 0;
+            let codePoint;
+            
+            while (attempts < 50) { // Max 50 attempts to find safe emoji
+                // Pick random range
+                const range = EMOJI_RANGES[Math.floor(Math.random() * EMOJI_RANGES.length)];
+                codePoint = range[0] + Math.floor(Math.random() * (range[1] - range[0] + 1));
+                
+                // Re-roll if blocked
+                if (!BLOCKED_EMOJI.has(codePoint)) {
+                    return String.fromCodePoint(codePoint);
+                }
+                attempts++;
+            }
+            
+            // Fallback to guaranteed safe emoji if we couldn't find one
+            return String.fromCodePoint(0x1F600); // 😀 Grinning face
+        }
+
+        // PRE-RENDERING CACHE - Massive performance boost!
+        class GlyphCache {
+            constructor() {
+                this.hieroglyphCache = new Map();
+                this.cuneiformCache = new Map();
+                this.emojiCache = new Map();
+            }
+
+            preRenderHieroglyphs() {
+                const sizes = [20, 35, 50];
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                sizes.forEach(size => {
+                    tempCanvas.width = size * 3;
+                    tempCanvas.height = size * 3;
+                    
+                    hieroglyphs.slice(0, 200).forEach(glyph => { // Pre-render subset for memory
+                        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+                        
+                        // Render with glow
+                        tempCtx.shadowBlur = 20;
+                        tempCtx.shadowColor = 'rgba(212, 175, 55, 0.5)';
+                        tempCtx.font = `${size}px "Noto Sans Egyptian Hieroglyphs", serif`;
+                        tempCtx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                        tempCtx.textAlign = 'center';
+                        tempCtx.textBaseline = 'middle';
+                        tempCtx.fillText(glyph, tempCanvas.width / 2, tempCanvas.height / 2);
+                        
+                        const cached = document.createElement('canvas');
+                        cached.width = tempCanvas.width;
+                        cached.height = tempCanvas.height;
+                        cached.getContext('2d').drawImage(tempCanvas, 0, 0);
+                        
+                        this.hieroglyphCache.set(`${glyph}-${size}`, cached);
+                    });
+                });
+            }
+
+            preRenderCuneiform() {
+                const fontSize = 28;
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = fontSize * 2;
+                tempCanvas.height = fontSize * 2;
+                
+                cuneiform.forEach(symbol => {
+                    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+                    tempCtx.font = `${fontSize}px "Noto Sans Cuneiform", serif`;
+                    tempCtx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                    tempCtx.textAlign = 'center';
+                    tempCtx.textBaseline = 'middle';
+                    tempCtx.fillText(symbol, tempCanvas.width / 2, tempCanvas.height / 2);
+                    
+                    const cached = document.createElement('canvas');
+                    cached.width = tempCanvas.width;
+                    cached.height = tempCanvas.height;
+                    cached.getContext('2d').drawImage(tempCanvas, 0, 0);
+                    this.cuneiformCache.set(symbol, cached);
+                });
+            }
+        }
+
+        const glyphCache = new GlyphCache();
+        
+        // Pre-render after fonts load
+        document.fonts.ready.then(() => {
+            console.log('Fonts loaded, pre-rendering glyphs...');
+            glyphCache.preRenderHieroglyphs();
+            glyphCache.preRenderCuneiform();
+            console.log('Pre-rendering complete!');
+        });
+
+        class Hieroglyph {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.char = hieroglyphs[Math.floor(Math.random() * Math.min(200, hieroglyphs.length))];
+                const sizes = [20, 35, 50];
+                this.size = sizes[Math.floor(Math.random() * sizes.length)];
+                this.opacity = 0;
+                this.targetOpacity = 0.3 + Math.random() * 0.7;
+                this.pulseSpeed = 0.001 + Math.random() * 0.002;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.cycleSpeed = 0.01 + Math.random() * 0.02;
+                this.cycleCounter = 0;
+                this.fadeIn = true;
+                this.fadeSpeed = 0.01 + Math.random() * 0.02;
+                this.lifetime = 5000 + Math.random() * 10000;
+                this.age = 0;
+                this.active = true;
+            }
+            
+            update(dt) {
+                if (!this.active) return;
+                
+                this.age += dt;
+                
+                if (this.fadeIn && this.opacity < this.targetOpacity) {
+                    this.opacity += this.fadeSpeed * dt / 16;
+                    if (this.opacity >= this.targetOpacity) {
+                        this.fadeIn = false;
+                    }
+                }
+                
+                if (this.age > this.lifetime - 1000) {
+                    this.opacity -= 0.001 * dt;
+                    if (this.opacity <= 0) {
+                        this.active = false;
+                        return;
+                    }
+                }
+                
+                this.pulsePhase += this.pulseSpeed * dt;
+                
+                this.cycleCounter += this.cycleSpeed * dt;
+                if (this.cycleCounter >= 1) {
+                    this.cycleCounter = 0;
+                    if (Math.random() > 0.5) {
+                        this.char = hieroglyphs[Math.floor(Math.random() * Math.min(200, hieroglyphs.length))];
+                    }
+                }
+            }
+            
+            draw() {
+                if (!this.active || this.opacity <= 0) return;
+                
+                const pulse = Math.sin(this.pulsePhase) * 0.15 + 0.85;
+                const finalOpacity = this.opacity * pulse;
+                
+                const cached = glyphCache.hieroglyphCache.get(`${this.char}-${this.size}`);
+                if (cached) {
+                    ctx.globalAlpha = finalOpacity;
+                    ctx.drawImage(cached, 
+                        this.x - cached.width / 2, 
+                        this.y - cached.height / 2);
+                    ctx.globalAlpha = 1;
+                } else {
+                    // Fallback if not cached
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = `rgba(212, 175, 55, ${finalOpacity * 0.5})`;
+                    ctx.font = `${this.size}px "Noto Sans Egyptian Hieroglyphs", serif`;
+                    ctx.fillStyle = `rgba(212, 175, 55, ${finalOpacity})`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(this.char, this.x, this.y);
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        class FallingEmoji {
+            constructor() {
+                this.reset();
+            }
+            
+            reset(startFalling = true) {
+                this.x = Math.random() * (width - 60) + 30;
+                this.y = startFalling ? -50 : 0;
+                this.char = getRandomSafeEmoji(); // Use new function
+                this.size = 30 + Math.random() * 30;
+                this.speed = 0.15 + Math.random() * 0.15;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.003;
+                this.active = true;
+                this.exploding = false;
+                this.explosionProgress = 0;
+            }
+            
+            update(dt) {
+                if (!this.active) return;
+                
+                if (this.exploding) {
+                    this.explosionProgress += 0.05 * dt / 16;
+                    this.rotation += 0.2 * dt / 16;
+                    if (this.explosionProgress >= 1) {
+                        this.active = false;
+                    }
+                    return;
+                }
+                
+                this.y += this.speed * dt;
+                this.rotation += this.rotationSpeed * dt;
+                
+                if (this.y > height + 100) {
+                    this.active = false;
+                }
+            }
+            
+            draw() {
+                if (!this.active) return;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                if (this.exploding) {
+                    const scale = 1 + this.explosionProgress * 2;
+                    const alpha = 1 - this.explosionProgress;
+                    ctx.scale(scale, scale);
+                    ctx.globalAlpha = alpha;
+                    ctx.font = `${this.size * 1.5}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('💥', 0, 0);
+                } else {
+                    ctx.font = `${this.size}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(this.char, 0, 0);
+                }
+                
+                ctx.restore();
+            }
+            
+            checkHit(x, y) {
+                if (this.exploding || !this.active) return false;
+                const dx = x - this.x;
+                const dy = y - this.y;
+                return Math.sqrt(dx * dx + dy * dy) < this.size;
+            }
+            
+            explode() {
+                this.exploding = true;
+                this.explosionProgress = 0;
+            }
+        }
+
+        class CuneiformTicker {
+            constructor(side) {
+                this.side = side;
+                this.symbols = [];
+                this.offset = 0;
+                this.speed = 0.08;
+                this.barHeight = 40;
+                this.fontSize = 28;
+                this.generateSymbols();
+            }
+            
+            generateSymbols() {
+                const numSymbols = this.side === 'left' || this.side === 'right' ? 50 : 100;
+                for (let i = 0; i < numSymbols; i++) {
+                    this.symbols.push(cuneiform[Math.floor(Math.random() * cuneiform.length)]);
+                }
+            }
+            
+            update(dt) {
+                this.offset += this.speed * dt;
+                
+                if (this.offset >= this.fontSize * 1.2) {
+                    this.offset = 0;
+                    this.symbols.push(cuneiform[Math.floor(Math.random() * cuneiform.length)]);
+                    if (this.symbols.length > (this.side === 'left' || this.side === 'right' ? 50 : 100)) {
+                        this.symbols.shift();
+                    }
+                }
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
+                
+                if (this.side === 'bottom') {
+                    ctx.fillRect(0, height - this.barHeight, width, this.barHeight);
+                    this.drawHorizontal(height - this.barHeight / 2, false);
+                } else if (this.side === 'top') {
+                    ctx.fillRect(0, 0, width, this.barHeight);
+                    this.drawHorizontal(this.barHeight / 2, true);
+                } else if (this.side === 'left') {
+                    ctx.fillRect(0, 0, this.barHeight, height);
+                    this.drawVertical(this.barHeight / 2, false);
+                } else if (this.side === 'right') {
+                    ctx.fillRect(width - this.barHeight, 0, this.barHeight, height);
+                    this.drawVertical(width - this.barHeight / 2, true);
+                }
+                
+                ctx.restore();
+            }
+            
+            drawHorizontal(y, reverse) {
+                const charWidth = this.fontSize * 1.2;
+                const startX = reverse ? width + this.offset : -this.offset;
+                const direction = reverse ? -1 : 1;
+                
+                for (let i = 0; i < this.symbols.length; i++) {
+                    const x = startX + (i * charWidth * direction);
+                    if (x >= -charWidth && x <= width + charWidth) {
+                        const cached = glyphCache.cuneiformCache.get(this.symbols[i]);
+                        if (cached) {
+                            ctx.drawImage(cached, x - this.fontSize, y - this.fontSize);
+                        }
+                    }
+                }
+            }
+            
+            drawVertical(x, reverse) {
+                ctx.save();
+                ctx.translate(x, 0);
+                ctx.rotate(Math.PI / 2);
+                
+                const charWidth = this.fontSize * 1.2;
+                const startY = reverse ? height + this.offset : -this.offset;
+                const direction = reverse ? -1 : 1;
+                
+                for (let i = 0; i < this.symbols.length; i++) {
+                    const y = startY + (i * charWidth * direction);
+                    if (y >= -charWidth && y <= height + charWidth) {
+                        const cached = glyphCache.cuneiformCache.get(this.symbols[i]);
+                        if (cached) {
+                            ctx.drawImage(cached, y - this.fontSize, -this.fontSize);
+                        }
+                    }
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // Object pools
+        const hieroglyphPool = [];
+        const emojiPool = [];
+        const MAX_HIEROGLYPHS = 50;
+        const MAX_EMOJIS = 25; // Reduced from 30 for better performance
+        
+        let emojiRainActive = false;
+        let lastEmojiSpawn = 0;
+        const EMOJI_SPAWN_INTERVAL = 200;
+
+        for (let i = 0; i < MAX_HIEROGLYPHS; i++) {
+            hieroglyphPool.push(new Hieroglyph());
+        }
+
+        const tickers = {
+            top: new CuneiformTicker('top'),
+            bottom: new CuneiformTicker('bottom'),
+            left: new CuneiformTicker('left'),
+            right: new CuneiformTicker('right')
         };
 
-        const starfield = document.getElementById('starfield');
-        const controls = document.getElementById('controls');
-        const activeHieroglyphs = new Map();
-        const activeEmojis = new Map();
-        let hieroglyphInterval = null;
-        let emojiInterval = null;
-        let clickTimes = [];
-        let boomModeTimeout = null;
+        // Optimized animation loop
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let lastFpsUpdate = lastTime;
 
-        function getRandomHieroglyph() {
-            return hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
-        }
-
-        function getRandomEmoji() {
-            return emojis[Math.floor(Math.random() * emojis.length)];
-        }
-
-        function getRandomSize() {
-            const sizes = ['small', 'medium', 'large'];
-            return sizes[Math.floor(Math.random() * sizes.length)];
-        }
-
-        function createHieroglyph() {
-            const element = document.createElement('div');
-            element.className = `hieroglyph ${getRandomSize()}`;
-            element.textContent = getRandomHieroglyph();
-
-            const x = Math.random() * window.innerWidth;
-            const y = Math.random() * window.innerHeight;
-
-            element.style.left = `${x}px`;
-            element.style.top = `${y}px`;
-            element.style.animationDuration = `${settings.pulseDuration}s`;
-
-            const shouldCycle = Math.random() > 0.3;
-
-            starfield.appendChild(element);
-
-            element.style.animation = `fadeIn 0.5s ease-in-out forwards, pulse ${settings.pulseDuration}s ease-in-out infinite`;
-
-            const glyphData = {
-                element,
-                cycleInterval: null,
-                fadeTimeout: null
-            };
-
-            if (shouldCycle) {
-                glyphData.cycleInterval = setInterval(() => {
-                    element.textContent = getRandomHieroglyph();
-                }, settings.cyclingSpeed);
+        function animate(currentTime) {
+            requestAnimationFrame(animate);
+            
+            const dt = Math.min(currentTime - lastTime, 50); // Cap delta time
+            lastTime = currentTime;
+            
+            // FPS counter
+            frameCount++;
+            if (currentTime - lastFpsUpdate > 1000) {
+                document.getElementById('fps').textContent = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastFpsUpdate = currentTime;
             }
-
-            const lifetime = 5000 + Math.random() * 10000;
-
-            glyphData.fadeTimeout = setTimeout(() => {
-                element.style.animation = `fadeOut ${settings.fadeSpeed}s ease-in-out forwards`;
-
-                if (glyphData.cycleInterval) {
-                    clearInterval(glyphData.cycleInterval);
+            
+            // Clear screen
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Batch hieroglyph operations
+            for (let i = 0; i < hieroglyphPool.length; i++) {
+                const glyph = hieroglyphPool[i];
+                glyph.update(dt);
+                if (!glyph.active) {
+                    glyph.reset();
                 }
-
-                setTimeout(() => {
-                    if (element.parentNode) {
-                        starfield.removeChild(element);
+            }
+            
+            // Draw hieroglyphs
+            for (let i = 0; i < hieroglyphPool.length; i++) {
+                hieroglyphPool[i].draw();
+            }
+            
+            // Emoji spawning
+            if (emojiRainActive && currentTime - lastEmojiSpawn > EMOJI_SPAWN_INTERVAL) {
+                const activeCount = emojiPool.filter(e => e.active).length;
+                if (activeCount < MAX_EMOJIS) {
+                    let emoji = emojiPool.find(e => !e.active);
+                    if (!emoji) {
+                        emoji = new FallingEmoji();
+                        emojiPool.push(emoji);
+                    } else {
+                        emoji.reset(true);
                     }
-                    activeHieroglyphs.delete(element);
-                }, settings.fadeSpeed * 1000);
-            }, lifetime);
-
-            activeHieroglyphs.set(element, glyphData);
-        }
-
-        function updateGlowIntensity() {
-            const intensity = settings.glowIntensity;
-            const alpha1 = 0.1 * intensity;
-            const alpha2 = 0.06 * intensity;
-            const alpha3 = 0.04 * intensity;
-            const alpha4 = 0.02 * intensity;
-
-            const style = document.createElement('style');
-            style.textContent = `
-                .hieroglyph {
-                    text-shadow:
-                        0 0 ${10 * intensity}px rgba(212, 175, 55, ${alpha1}),
-                        0 0 ${20 * intensity}px rgba(212, 175, 55, ${alpha2}),
-                        0 0 ${30 * intensity}px rgba(212, 175, 55, ${alpha3}),
-                        0 0 ${40 * intensity}px rgba(212, 175, 55, ${alpha4});
                 }
-            `;
-
-            const existingStyle = document.querySelector('style[data-glow]');
-            if (existingStyle) {
-                existingStyle.remove();
+                lastEmojiSpawn = currentTime;
             }
-            style.setAttribute('data-glow', 'true');
-            document.head.appendChild(style);
+            
+            // Update and draw emojis
+            for (let i = 0; i < emojiPool.length; i++) {
+                emojiPool[i].update(dt);
+                emojiPool[i].draw();
+            }
+            
+            // Update and draw tickers
+            tickers.bottom.update(dt);
+            tickers.top.update(dt);
+            tickers.left.update(dt);
+            tickers.right.update(dt);
+            
+            tickers.bottom.draw();
+            tickers.top.draw();
+            tickers.left.draw();
+            tickers.right.draw();
         }
 
-        function createEmoji() {
-            const element = document.createElement('div');
-            element.className = `emoji ${getRandomSize()}`;
-            element.textContent = getRandomEmoji();
-
-            const x = Math.random() * (window.innerWidth - 50);
-            element.style.left = `${x}px`;
-            element.style.top = '-50px';
-
-            const fallSpeed = 6 + Math.random() * 6; // Slower: 6-12 seconds
-            element.style.animation = `fall ${fallSpeed}s linear`;
-
-            starfield.appendChild(element);
-
-            const handlePop = (e) => {
-                e.stopPropagation();
-
-                // Get current position of the emoji
-                const rect = element.getBoundingClientRect();
-                const currentX = rect.left;
-                const currentY = rect.top;
-
-                // Transform to boom emoji and fix position during animation
-                element.textContent = '💥';
-                element.style.left = `${currentX}px`;
-                element.style.top = `${currentY}px`;
-                element.style.animation = 'pop 0.4s ease-out forwards';
-                activeEmojis.delete(element);
-
-                setTimeout(() => {
-                    if (element.parentNode) {
-                        starfield.removeChild(element);
-                    }
-                }, 400);
-            };
-
-            // Add both click and touch events
-            element.addEventListener('click', handlePop);
-            element.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Prevent default touch behavior
-                handlePop(e);
-            });
-
-            const removeTimeout = setTimeout(() => {
-                if (element.parentNode) {
-                    starfield.removeChild(element);
+        // Input handling
+        function handleTap(x, y) {
+            if (!emojiRainActive) {
+                emojiRainActive = true;
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const emoji = new FallingEmoji();
+                        emojiPool.push(emoji);
+                    }, i * 100);
                 }
-                activeEmojis.delete(element);
-            }, fallSpeed * 1000);
-
-            activeEmojis.set(element, { element, removeTimeout });
-        }
-
-        function manageHieroglyphs() {
-            if (activeHieroglyphs.size < settings.activeGlyphs) {
-                createHieroglyph();
+                return;
             }
-        }
-
-        function manageEmojis() {
-            if (settings.emojiRainActive && activeEmojis.size < 20) { // Reduced max from 30 to 20
-                createEmoji();
-            }
-        }
-
-        function clearEmojis() {
-            activeEmojis.forEach(data => {
-                if (data.removeTimeout) clearTimeout(data.removeTimeout);
-                if (data.element.parentNode) {
-                    starfield.removeChild(data.element);
+            
+            for (let i = emojiPool.length - 1; i >= 0; i--) {
+                if (emojiPool[i].checkHit(x, y)) {
+                    emojiPool[i].explode();
+                    break;
                 }
-            });
-            activeEmojis.clear();
-        }
-
-        function activateEmojiRain() {
-            settings.emojiRainActive = true;
-            document.body.classList.add('boom-mode');
-            document.getElementById('modeToggle').textContent = '💥 EMOJI RAIN ACTIVE 💥 (Click to Stop)';
-
-            // Start emoji rain (slower spawn rate)
-            if (emojiInterval) clearInterval(emojiInterval);
-            emojiInterval = setInterval(manageEmojis, 250); // Reduced from 100ms to 250ms
-
-            // Create initial burst
-            for (let i = 0; i < 10; i++) {
-                setTimeout(() => createEmoji(), i * 50);
-            }
-
-            // No auto-deactivate - rain continues until manually stopped
-        }
-
-        function deactivateEmojiRain() {
-            settings.emojiRainActive = false;
-            document.body.classList.remove('boom-mode');
-            clickTimes = [];
-
-            if (emojiInterval) clearInterval(emojiInterval);
-            emojiInterval = null;
-
-            clearEmojis();
-            document.getElementById('modeToggle').textContent = 'Click 4 Times Fast for Emoji Rain! 🎉';
-        }
-
-        function toggleMode() {
-            if (settings.emojiRainActive) {
-                deactivateEmojiRain();
-            } else {
-                activateEmojiRain();
             }
         }
 
-        // Global click/touch detection for rapid clicks/taps
-        const handleRapidTap = (e) => {
-            const now = Date.now();
-            clickTimes.push(now);
-            clickTimes = clickTimes.filter(t => now - t < 800);
-
-            if (clickTimes.length >= 4 && !settings.emojiRainActive) {
-                activateEmojiRain();
-            }
-        };
-
-        document.addEventListener('click', handleRapidTap);
-        document.addEventListener('touchstart', (e) => {
-            // Only count touch if not on an emoji
-            if (!e.target.classList.contains('emoji')) {
-                handleRapidTap(e);
-            }
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            handleTap(e.clientX - rect.left, e.clientY - rect.top);
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.code === 'Space') {
-                e.preventDefault();
-                controls.classList.toggle('active');
-            }
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            handleTap(touch.clientX - rect.left, touch.clientY - rect.top);
         });
 
-        document.getElementById('cyclingSpeed').addEventListener('input', (e) => {
-            settings.cyclingSpeed = parseInt(e.target.value);
-            document.getElementById('cyclingSpeedValue').textContent = e.target.value;
-
-            activeHieroglyphs.forEach(data => {
-                if (data.cycleInterval) {
-                    clearInterval(data.cycleInterval);
-                    data.cycleInterval = setInterval(() => {
-                        data.element.textContent = getRandomHieroglyph();
-                    }, settings.cyclingSpeed);
-                }
-            });
-        });
-
-        document.getElementById('glowIntensity').addEventListener('input', (e) => {
-            settings.glowIntensity = parseInt(e.target.value);
-            document.getElementById('glowIntensityValue').textContent = e.target.value;
-            updateGlowIntensity();
-        });
-
-        document.getElementById('activeGlyphs').addEventListener('input', (e) => {
-            settings.activeGlyphs = parseInt(e.target.value);
-            document.getElementById('activeGlyphsValue').textContent = e.target.value;
-        });
-
-        document.getElementById('fadeSpeed').addEventListener('input', (e) => {
-            settings.fadeSpeed = parseInt(e.target.value);
-            document.getElementById('fadeSpeedValue').textContent = e.target.value;
-        });
-
-        document.getElementById('pulseDuration').addEventListener('input', (e) => {
-            settings.pulseDuration = parseInt(e.target.value);
-            document.getElementById('pulseDurationValue').textContent = e.target.value;
-
-            activeHieroglyphs.forEach(data => {
-                data.element.style.animationDuration = `${settings.pulseDuration}s`;
-            });
-        });
-
-        function applyPreset(preset) {
-            if (preset === 'calm') {
-                settings.cyclingSpeed = 400;
-                settings.glowIntensity = 3;
-                settings.activeGlyphs = 10;
-                settings.fadeSpeed = 5;
-                settings.pulseDuration = 6;
-            } else if (preset === 'active') {
-                settings.cyclingSpeed = 100;
-                settings.glowIntensity = 8;
-                settings.activeGlyphs = 35;
-                settings.fadeSpeed = 2;
-                settings.pulseDuration = 3;
-            }
-
-            document.getElementById('cyclingSpeed').value = settings.cyclingSpeed;
-            document.getElementById('cyclingSpeedValue').textContent = settings.cyclingSpeed;
-            document.getElementById('glowIntensity').value = settings.glowIntensity;
-            document.getElementById('glowIntensityValue').textContent = settings.glowIntensity;
-            document.getElementById('activeGlyphs').value = settings.activeGlyphs;
-            document.getElementById('activeGlyphsValue').textContent = settings.activeGlyphs;
-            document.getElementById('fadeSpeed').value = settings.fadeSpeed;
-            document.getElementById('fadeSpeedValue').textContent = settings.fadeSpeed;
-            document.getElementById('pulseDuration').value = settings.pulseDuration;
-            document.getElementById('pulseDurationValue').textContent = settings.pulseDuration;
-
-            updateGlowIntensity();
-
-            activeHieroglyphs.forEach(data => {
-                data.element.style.animationDuration = `${settings.pulseDuration}s`;
-
-                if (data.cycleInterval) {
-                    clearInterval(data.cycleInterval);
-                    data.cycleInterval = setInterval(() => {
-                        data.element.textContent = getRandomHieroglyph();
-                    }, settings.cyclingSpeed);
-                }
-            });
-        }
-
-        // Start hieroglyphs immediately (always running)
-        hieroglyphInterval = setInterval(manageHieroglyphs, 500);
-        for (let i = 0; i < settings.activeGlyphs; i++) {
-            setTimeout(() => createHieroglyph(), i * 100);
-        }
-
-        // Update mode toggle button text
-        document.getElementById('modeToggle').textContent = 'Click 4 Times Fast for Emoji Rain! 🎉';
-
-        // Fullscreen functionality
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                    console.log(`Fullscreen error: ${err.message}`);
                 });
-                document.getElementById('fullscreenBtn').textContent = '◱';
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                    document.getElementById('fullscreenBtn').textContent = '⛶';
-                }
+                document.exitFullscreen();
             }
         }
 
-        // Update fullscreen button on fullscreen change
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                document.getElementById('fullscreenBtn').textContent = '◱';
-            } else {
-                document.getElementById('fullscreenBtn').textContent = '⛶';
-            }
-        });
+        animate(performance.now());
     </script>
 </body>
 </html>
