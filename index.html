@@ -320,6 +320,8 @@
             draw() {
                 if (!this.active || this.opacity <= 0) return;
                 
+                ctx.save(); // Save clean state
+                
                 const pulse = Math.sin(this.pulsePhase) * 0.15 + 0.85;
                 const finalOpacity = this.opacity * pulse;
                 
@@ -329,7 +331,6 @@
                     ctx.drawImage(cached, 
                         this.x - cached.width / 2, 
                         this.y - cached.height / 2);
-                    ctx.globalAlpha = 1;
                 } else {
                     // Fallback if not cached
                     ctx.shadowBlur = 20;
@@ -339,8 +340,9 @@
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText(this.char, this.x, this.y);
-                    ctx.shadowBlur = 0;
                 }
+                
+                ctx.restore(); // Restore clean state
             }
         }
 
@@ -646,6 +648,34 @@
         }
 
         animate(performance.now());
+
+        // Auto-refresh on file change detection
+        let lastModified = null;
+        let checkInterval = 2000; // Check every 2 seconds
+
+        async function checkForUpdates() {
+            try {
+                const response = await fetch(window.location.href, {
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                });
+                
+                const currentModified = response.headers.get('Last-Modified');
+                
+                if (lastModified === null) {
+                    lastModified = currentModified;
+                } else if (currentModified && currentModified !== lastModified) {
+                    console.log('File changed, reloading...');
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.log('Update check failed:', error);
+            }
+        }
+
+        // Start checking for updates
+        setInterval(checkForUpdates, checkInterval);
+        checkForUpdates(); // Initial check
     </script>
 </body>
 </html>
