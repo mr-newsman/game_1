@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Egyptian Hieroglyph Starfield - Ultra Optimized</title>
+    <title>Egyptian Hieroglyph Starfield - Clean</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&family=Noto+Sans+Cuneiform&display=swap" rel="stylesheet">
@@ -45,7 +45,6 @@
             z-index: 9999;
             transition: all 0.3s;
             font-weight: bold;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
             touch-action: manipulation;
         }
 
@@ -73,23 +72,15 @@
 
     <script>
         const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d', { 
-            alpha: false,
-            desynchronized: true, // Better performance on some devices
-            willReadFrequently: false
-        });
+        const ctx = canvas.getContext('2d', { alpha: false });
         
-        let width, height, dpr;
+        let width, height;
         
         function resizeCanvas() {
-            dpr = window.devicePixelRatio || 1;
             width = window.innerWidth;
             height = window.innerHeight;
-            canvas.width = width * dpr;
-            canvas.height = height * dpr;
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-            ctx.scale(dpr, dpr);
+            canvas.width = width;
+            canvas.height = height;
         }
         
         resizeCanvas();
@@ -113,161 +104,53 @@
             cuneiform.push(String.fromCodePoint(i));
         }
 
-        // Safe, school-appropriate emoji ranges with exclusions
+        // Safe emoji ranges with exclusions
         const EMOJI_RANGES = [
             [0x1F600, 0x1F64F], // Emoticons
-            [0x1F680, 0x1F6C5], // Transport and Map Symbols
-            [0x1F6CB, 0x1F6D2], // Transport and Map Symbols (continued)
-            [0x1F6E0, 0x1F6EC], // Transport and Map Symbols (continued)
-            [0x1F910, 0x1F96B], // Supplemental Symbols
-            [0x1F980, 0x1F9E0], // Supplemental Symbols and Pictographs
+            [0x1F680, 0x1F6C5], // Transport
+            [0x1F6CB, 0x1F6D2],
+            [0x1F6E0, 0x1F6EC],
+            [0x1F910, 0x1F96B], // Supplemental
+            [0x1F980, 0x1F9E0],
             [0x1F400, 0x1F43E], // Animals
-            [0x1F440, 0x1F450], // Body parts and hand gestures
-            [0x1F300, 0x1F3FA], // Miscellaneous Symbols (weather, nature, sports)
-            [0x1F330, 0x1F37D], // Food and Drink
-            [0x2600, 0x26FF],   // Miscellaneous Symbols (sun, stars, etc)
-            [0x2700, 0x27BF],   // Dingbats
+            [0x1F440, 0x1F450],
+            [0x1F300, 0x1F3FA], // Misc
+            [0x1F330, 0x1F37D], // Food
+            [0x2600, 0x26FF],
+            [0x2700, 0x27BF],
         ];
         
-        // Blocked emoji code points (inappropriate for school)
         const BLOCKED_EMOJI = new Set([
-            // Pregnant people variants
             0x1F930, 0x1FAC3, 0x1FAC4, 0x1FAC5,
-            // Same-sex couple/family emojis (blocking ranges)
-            0x1F468, 0x1F469, // When combined with ZWJ sequences
-            0x1F46A, 0x1F46B, 0x1F46C, 0x1F46D, // Couples/families
-            // Alcohol/drugs
+            0x1F468, 0x1F469, 0x1F46A, 0x1F46B, 0x1F46C, 0x1F46D,
             0x1F37B, 0x1F37A, 0x1F377, 0x1F378, 0x1F379, 0x1F37C,
-            0x1F48A, // Pill
-            0x1F6AC, // Cigarette
-            // Weapons
+            0x1F48A, 0x1F6AC,
             0x1F52B, 0x1F5E1, 0x2694, 0x1F3F9, 0x1F4A3, 0x1F9E8,
-            // Middle finger and inappropriate gestures
             0x1F595, 0x1F446, 0x1F447, 0x1F448, 0x1F449,
-            // Eggplant, peach (often used inappropriately)
             0x1F346, 0x1F351,
-            // Religious symbols that might be controversial
             0x262A, 0x262E, 0x262F, 0x2626, 0x2627, 0x1F52F, 0x1F54B, 0x1F54C, 0x1F54D, 0x1F54E,
-            // Devil faces
             0x1F608, 0x1F47F,
-            // Skulls
             0x1F480, 0x2620, 0x1F571,
-            // Kiss/lips
             0x1F48B, 0x1F444, 0x1F48F, 0x1F491,
-            // Controversial hand gestures
             0x1F919, 0x1F918, 0x1F91F, 0x1F91E, 0x1F91C,
-            // Potentially suggestive
-            0x1F445, // Tongue
-            0x1F4A6, // Sweat droplets
-            0x1F52E, // Crystal ball
-            // Money (gambling association)
+            0x1F445, 0x1F4A6, 0x1F52E,
             0x1F4B0, 0x1F4B4, 0x1F4B5, 0x1F4B6, 0x1F4B7, 0x1F4B8, 0x1F911,
-            // Clown (can be used for bullying)
             0x1F921,
-            // Potentially scary
             0x1F47B, 0x1F47D, 0x1F47E, 0x1F916, 0x1F479, 0x1F47A,
         ]);
         
-        // Generate emoji array from ranges, excluding blocked ones
         function getRandomSafeEmoji() {
             let attempts = 0;
-            let codePoint;
-            
-            while (attempts < 50) { // Max 50 attempts to find safe emoji
-                // Pick random range
+            while (attempts < 50) {
                 const range = EMOJI_RANGES[Math.floor(Math.random() * EMOJI_RANGES.length)];
-                codePoint = range[0] + Math.floor(Math.random() * (range[1] - range[0] + 1));
-                
-                // Re-roll if blocked
+                const codePoint = range[0] + Math.floor(Math.random() * (range[1] - range[0] + 1));
                 if (!BLOCKED_EMOJI.has(codePoint)) {
                     return String.fromCodePoint(codePoint);
                 }
                 attempts++;
             }
-            
-            // Fallback to guaranteed safe emoji if we couldn't find one
-            return String.fromCodePoint(0x1F600); // 😀 Grinning face
+            return String.fromCodePoint(0x1F600);
         }
-
-        // PRE-RENDERING CACHE - Massive performance boost!
-        class GlyphCache {
-            constructor() {
-                this.hieroglyphCache = new Map();
-                this.cuneiformCache = new Map();
-                this.emojiCache = new Map();
-            }
-
-            preRenderHieroglyphs() {
-                const sizes = [20, 35, 50];
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                
-                sizes.forEach(size => {
-                    // Make canvas bigger to accommodate glow without clipping
-                    tempCanvas.width = size * 4;
-                    tempCanvas.height = size * 4;
-                    
-                    hieroglyphs.slice(0, 200).forEach(glyph => { // Pre-render subset for memory
-                        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-                        
-                        // Render with glow
-                        tempCtx.shadowBlur = 15; // Reduced from 20
-                        tempCtx.shadowColor = 'rgba(212, 175, 55, 0.4)'; // Reduced from 0.5
-                        tempCtx.font = `${size}px "Noto Sans Egyptian Hieroglyphs", serif`;
-                        tempCtx.fillStyle = 'rgba(212, 175, 55, 0.9)';
-                        tempCtx.textAlign = 'center';
-                        tempCtx.textBaseline = 'middle';
-                        tempCtx.fillText(glyph, tempCanvas.width / 2, tempCanvas.height / 2);
-                        
-                        // Reset shadow immediately
-                        tempCtx.shadowBlur = 0;
-                        tempCtx.shadowColor = 'transparent';
-                        
-                        const cached = document.createElement('canvas');
-                        cached.width = tempCanvas.width;
-                        cached.height = tempCanvas.height;
-                        const cachedCtx = cached.getContext('2d');
-                        cachedCtx.clearRect(0, 0, cached.width, cached.height);
-                        cachedCtx.drawImage(tempCanvas, 0, 0);
-                        
-                        this.hieroglyphCache.set(`${glyph}-${size}`, cached);
-                    });
-                });
-            }
-
-            preRenderCuneiform() {
-                const fontSize = 28;
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCanvas.width = fontSize * 2;
-                tempCanvas.height = fontSize * 2;
-                
-                cuneiform.forEach(symbol => {
-                    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-                    tempCtx.font = `${fontSize}px "Noto Sans Cuneiform", serif`;
-                    tempCtx.fillStyle = 'rgba(212, 175, 55, 0.9)';
-                    tempCtx.textAlign = 'center';
-                    tempCtx.textBaseline = 'middle';
-                    tempCtx.fillText(symbol, tempCanvas.width / 2, tempCanvas.height / 2);
-                    
-                    const cached = document.createElement('canvas');
-                    cached.width = tempCanvas.width;
-                    cached.height = tempCanvas.height;
-                    cached.getContext('2d').drawImage(tempCanvas, 0, 0);
-                    this.cuneiformCache.set(symbol, cached);
-                });
-            }
-        }
-
-        const glyphCache = new GlyphCache();
-        
-        // Pre-render after fonts load
-        document.fonts.ready.then(() => {
-            console.log('Fonts loaded, pre-rendering glyphs...');
-            glyphCache.preRenderHieroglyphs();
-            glyphCache.preRenderCuneiform();
-            console.log('Pre-rendering complete!');
-        });
 
         class Hieroglyph {
             constructor() {
@@ -277,7 +160,7 @@
             reset() {
                 this.x = Math.random() * width;
                 this.y = Math.random() * height;
-                this.char = hieroglyphs[Math.floor(Math.random() * Math.min(200, hieroglyphs.length))];
+                this.char = hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
                 const sizes = [20, 35, 50];
                 this.size = sizes[Math.floor(Math.random() * sizes.length)];
                 this.opacity = 0;
@@ -319,7 +202,7 @@
                 if (this.cycleCounter >= 1) {
                     this.cycleCounter = 0;
                     if (Math.random() > 0.5) {
-                        this.char = hieroglyphs[Math.floor(Math.random() * Math.min(200, hieroglyphs.length))];
+                        this.char = hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
                     }
                 }
             }
@@ -327,29 +210,17 @@
             draw() {
                 if (!this.active || this.opacity <= 0) return;
                 
-                ctx.save(); // Save clean state
-                
                 const pulse = Math.sin(this.pulsePhase) * 0.15 + 0.85;
                 const finalOpacity = this.opacity * pulse;
                 
-                const cached = glyphCache.hieroglyphCache.get(`${this.char}-${this.size}`);
-                if (cached) {
-                    ctx.globalAlpha = finalOpacity;
-                    ctx.drawImage(cached, 
-                        this.x - cached.width / 2, 
-                        this.y - cached.height / 2);
-                } else {
-                    // Fallback if not cached
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = `rgba(212, 175, 55, ${finalOpacity * 0.5})`;
-                    ctx.font = `${this.size}px "Noto Sans Egyptian Hieroglyphs", serif`;
-                    ctx.fillStyle = `rgba(212, 175, 55, ${finalOpacity})`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(this.char, this.x, this.y);
-                }
-                
-                ctx.restore(); // Restore clean state
+                ctx.save();
+                ctx.globalAlpha = finalOpacity;
+                ctx.font = `${this.size}px "Noto Sans Egyptian Hieroglyphs", serif`;
+                ctx.fillStyle = '#d4af37';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.char, this.x, this.y);
+                ctx.restore();
             }
         }
 
@@ -361,7 +232,7 @@
             reset(startFalling = true) {
                 this.x = Math.random() * (width - 60) + 30;
                 this.y = startFalling ? -50 : 0;
-                this.char = getRandomSafeEmoji(); // Use new function
+                this.char = getRandomSafeEmoji();
                 this.size = 30 + Math.random() * 30;
                 this.speed = 0.15 + Math.random() * 0.15;
                 this.rotation = 0;
@@ -404,16 +275,13 @@
                     ctx.scale(scale, scale);
                     ctx.globalAlpha = alpha;
                     ctx.font = `${this.size * 1.5}px sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('💥', 0, 0);
                 } else {
                     ctx.font = `${this.size}px sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(this.char, 0, 0);
                 }
                 
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.exploding ? '💥' : this.char, 0, 0);
                 ctx.restore();
             }
             
@@ -463,29 +331,18 @@
             draw() {
                 ctx.save();
                 
-                // Clip to prevent overflow glitches
+                // Draw background bar
+                ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                 if (this.side === 'bottom') {
-                    ctx.rect(0, height - this.barHeight, width, this.barHeight);
-                    ctx.clip();
-                    ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                     ctx.fillRect(0, height - this.barHeight, width, this.barHeight);
                     this.drawHorizontal(height - this.barHeight / 2, false);
                 } else if (this.side === 'top') {
-                    ctx.rect(0, 0, width, this.barHeight);
-                    ctx.clip();
-                    ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                     ctx.fillRect(0, 0, width, this.barHeight);
                     this.drawHorizontal(this.barHeight / 2, true);
                 } else if (this.side === 'left') {
-                    ctx.rect(0, 0, this.barHeight, height);
-                    ctx.clip();
-                    ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                     ctx.fillRect(0, 0, this.barHeight, height);
                     this.drawVertical(this.barHeight / 2, false);
                 } else if (this.side === 'right') {
-                    ctx.rect(width - this.barHeight, 0, this.barHeight, height);
-                    ctx.clip();
-                    ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                     ctx.fillRect(width - this.barHeight, 0, this.barHeight, height);
                     this.drawVertical(width - this.barHeight / 2, true);
                 }
@@ -494,6 +351,11 @@
             }
             
             drawHorizontal(y, reverse) {
+                ctx.font = `${this.fontSize}px "Noto Sans Cuneiform", serif`;
+                ctx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
                 const charWidth = this.fontSize * 1.2;
                 const startX = reverse ? width + this.offset : -this.offset;
                 const direction = reverse ? -1 : 1;
@@ -501,10 +363,7 @@
                 for (let i = 0; i < this.symbols.length; i++) {
                     const x = startX + (i * charWidth * direction);
                     if (x >= -charWidth && x <= width + charWidth) {
-                        const cached = glyphCache.cuneiformCache.get(this.symbols[i]);
-                        if (cached) {
-                            ctx.drawImage(cached, x - this.fontSize, y - this.fontSize);
-                        }
+                        ctx.fillText(this.symbols[i], x, y);
                     }
                 }
             }
@@ -514,6 +373,11 @@
                 ctx.translate(x, 0);
                 ctx.rotate(Math.PI / 2);
                 
+                ctx.font = `${this.fontSize}px "Noto Sans Cuneiform", serif`;
+                ctx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
                 const charWidth = this.fontSize * 1.2;
                 const startY = reverse ? height + this.offset : -this.offset;
                 const direction = reverse ? -1 : 1;
@@ -521,10 +385,7 @@
                 for (let i = 0; i < this.symbols.length; i++) {
                     const y = startY + (i * charWidth * direction);
                     if (y >= -charWidth && y <= height + charWidth) {
-                        const cached = glyphCache.cuneiformCache.get(this.symbols[i]);
-                        if (cached) {
-                            ctx.drawImage(cached, y - this.fontSize, -this.fontSize);
-                        }
+                        ctx.fillText(this.symbols[i], y, 0);
                     }
                 }
                 
@@ -536,7 +397,7 @@
         const hieroglyphPool = [];
         const emojiPool = [];
         const MAX_HIEROGLYPHS = 50;
-        const MAX_EMOJIS = 25; // Reduced from 30 for better performance
+        const MAX_EMOJIS = 25;
         
         let emojiRainActive = false;
         let lastEmojiSpawn = 0;
@@ -553,7 +414,7 @@
             right: new CuneiformTicker('right')
         };
 
-        // Optimized animation loop
+        // Animation loop
         let lastTime = performance.now();
         let frameCount = 0;
         let lastFpsUpdate = lastTime;
@@ -561,10 +422,9 @@
         function animate(currentTime) {
             requestAnimationFrame(animate);
             
-            const dt = Math.min(currentTime - lastTime, 50); // Cap delta time
+            const dt = Math.min(currentTime - lastTime, 50);
             lastTime = currentTime;
             
-            // FPS counter
             frameCount++;
             if (currentTime - lastFpsUpdate > 1000) {
                 document.getElementById('fps').textContent = `FPS: ${frameCount}`;
@@ -572,24 +432,15 @@
                 lastFpsUpdate = currentTime;
             }
             
-            // Clear screen with full black background
+            // Clear screen completely
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, width, height);
             
-            // Reset all canvas state before drawing
-            ctx.globalAlpha = 1;
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.shadowBlur = 0;
-            ctx.shadowColor = 'transparent';
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-            
-            // Batch hieroglyph operations
+            // Update hieroglyphs
             for (let i = 0; i < hieroglyphPool.length; i++) {
-                const glyph = hieroglyphPool[i];
-                glyph.update(dt);
-                if (!glyph.active) {
-                    glyph.reset();
+                hieroglyphPool[i].update(dt);
+                if (!hieroglyphPool[i].active) {
+                    hieroglyphPool[i].reset();
                 }
             }
             
@@ -676,19 +527,15 @@
 
         animate(performance.now());
 
-        // Auto-refresh on file change detection
+        // Auto-refresh on file change
         let lastModified = null;
-        let checkInterval = 2000; // Check every 2 seconds
-
         async function checkForUpdates() {
             try {
                 const response = await fetch(window.location.href, {
                     method: 'HEAD',
                     cache: 'no-cache'
                 });
-                
                 const currentModified = response.headers.get('Last-Modified');
-                
                 if (lastModified === null) {
                     lastModified = currentModified;
                 } else if (currentModified && currentModified !== lastModified) {
@@ -699,10 +546,8 @@
                 console.log('Update check failed:', error);
             }
         }
-
-        // Start checking for updates
-        setInterval(checkForUpdates, checkInterval);
-        checkForUpdates(); // Initial check
+        setInterval(checkForUpdates, 2000);
+        checkForUpdates();
     </script>
 </body>
 </html>
