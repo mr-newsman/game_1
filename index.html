@@ -203,25 +203,32 @@
                 const tempCtx = tempCanvas.getContext('2d');
                 
                 sizes.forEach(size => {
-                    tempCanvas.width = size * 3;
-                    tempCanvas.height = size * 3;
+                    // Make canvas bigger to accommodate glow without clipping
+                    tempCanvas.width = size * 4;
+                    tempCanvas.height = size * 4;
                     
                     hieroglyphs.slice(0, 200).forEach(glyph => { // Pre-render subset for memory
                         tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
                         
                         // Render with glow
-                        tempCtx.shadowBlur = 20;
-                        tempCtx.shadowColor = 'rgba(212, 175, 55, 0.5)';
+                        tempCtx.shadowBlur = 15; // Reduced from 20
+                        tempCtx.shadowColor = 'rgba(212, 175, 55, 0.4)'; // Reduced from 0.5
                         tempCtx.font = `${size}px "Noto Sans Egyptian Hieroglyphs", serif`;
                         tempCtx.fillStyle = 'rgba(212, 175, 55, 0.9)';
                         tempCtx.textAlign = 'center';
                         tempCtx.textBaseline = 'middle';
                         tempCtx.fillText(glyph, tempCanvas.width / 2, tempCanvas.height / 2);
                         
+                        // Reset shadow immediately
+                        tempCtx.shadowBlur = 0;
+                        tempCtx.shadowColor = 'transparent';
+                        
                         const cached = document.createElement('canvas');
                         cached.width = tempCanvas.width;
                         cached.height = tempCanvas.height;
-                        cached.getContext('2d').drawImage(tempCanvas, 0, 0);
+                        const cachedCtx = cached.getContext('2d');
+                        cachedCtx.clearRect(0, 0, cached.width, cached.height);
+                        cachedCtx.drawImage(tempCanvas, 0, 0);
                         
                         this.hieroglyphCache.set(`${glyph}-${size}`, cached);
                     });
@@ -455,18 +462,30 @@
             
             draw() {
                 ctx.save();
-                ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                 
+                // Clip to prevent overflow glitches
                 if (this.side === 'bottom') {
+                    ctx.rect(0, height - this.barHeight, width, this.barHeight);
+                    ctx.clip();
+                    ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                     ctx.fillRect(0, height - this.barHeight, width, this.barHeight);
                     this.drawHorizontal(height - this.barHeight / 2, false);
                 } else if (this.side === 'top') {
+                    ctx.rect(0, 0, width, this.barHeight);
+                    ctx.clip();
+                    ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                     ctx.fillRect(0, 0, width, this.barHeight);
                     this.drawHorizontal(this.barHeight / 2, true);
                 } else if (this.side === 'left') {
+                    ctx.rect(0, 0, this.barHeight, height);
+                    ctx.clip();
+                    ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                     ctx.fillRect(0, 0, this.barHeight, height);
                     this.drawVertical(this.barHeight / 2, false);
                 } else if (this.side === 'right') {
+                    ctx.rect(width - this.barHeight, 0, this.barHeight, height);
+                    ctx.clip();
+                    ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
                     ctx.fillRect(width - this.barHeight, 0, this.barHeight, height);
                     this.drawVertical(width - this.barHeight / 2, true);
                 }
@@ -553,9 +572,17 @@
                 lastFpsUpdate = currentTime;
             }
             
-            // Clear screen
+            // Clear screen with full black background
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, width, height);
+            
+            // Reset all canvas state before drawing
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
             
             // Batch hieroglyph operations
             for (let i = 0; i < hieroglyphPool.length; i++) {
