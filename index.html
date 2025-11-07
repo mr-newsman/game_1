@@ -512,6 +512,41 @@
             background: rgba(212, 175, 55, 0.5);
             transform: scale(1.1);
         }
+
+        /* ===== GAME 6 STYLES ===== */
+        #game6-screen {
+            background-color: #000;
+            touch-action: none;
+        }
+
+        #game6-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        #game6-menuBtn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(212, 175, 55, 0.3);
+            color: #d4af37;
+            border: 2px solid #d4af37;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 9999;
+            transition: all 0.3s;
+            font-weight: bold;
+            touch-action: manipulation;
+        }
+
+        #game6-menuBtn:hover {
+            background: rgba(212, 175, 55, 0.5);
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -524,6 +559,7 @@
             <button class="game-button" onclick="showScreen('game2')">Game 2</button>
             <button class="game-button" onclick="showScreen('game3')">Game 3</button>
             <button class="game-button" onclick="showScreen('game4')">Game 4</button>
+            <button class="game-button" onclick="showScreen('game6')">Game 6</button>
         </div>
     </div>
 
@@ -574,12 +610,19 @@
         <button id="game4-menuBtn" onclick="showScreen('menu')">Return to Menu</button>
     </div>
 
+    <!-- GAME 6 SCREEN -->
+    <div id="game6-screen" class="screen">
+        <canvas id="game6-canvas"></canvas>
+        <button id="game6-menuBtn" onclick="showScreen('menu')">Return to Menu</button>
+    </div>
+
     <script>
         // ===== GLOBAL SCREEN MANAGEMENT =====
         let currentScreen = 'menu';
         let menuAnimationId = null;
         let game1AnimationId = null;
         let game4AnimationId = null;
+        let game6AnimationId = null;
 
         function showScreen(screenName) {
             console.log('Switching from', currentScreen, 'to', screenName);
@@ -597,6 +640,9 @@
             } else if (currentScreen === 'game4' && game4AnimationId) {
                 cancelAnimationFrame(game4AnimationId);
                 game4AnimationId = null;
+            } else if (currentScreen === 'game6' && game6AnimationId) {
+                cancelAnimationFrame(game6AnimationId);
+                game6AnimationId = null;
             }
 
             // Show new screen
@@ -628,6 +674,13 @@
                 setTimeout(() => {
                     resizeGame4Canvas();
                     startGame4();
+                }, 0);
+            } else if (screenName === 'game6') {
+                document.getElementById('game6-screen').classList.add('active');
+                // Resize game6 canvas after screen is visible
+                setTimeout(() => {
+                    resizeGame6Canvas();
+                    startGame6();
                 }, 0);
             }
 
@@ -2125,6 +2178,565 @@
             game4ExplodingEmojis.length = 0;
             game4LastTime = performance.now();
             animateGame4(game4LastTime);
+        }
+
+        // ===== GAME 6 =====
+        const game6Canvas = document.getElementById('game6-canvas');
+        if (!game6Canvas) {
+            console.error('Game 6 canvas not found!');
+        }
+        const game6Ctx = game6Canvas ? game6Canvas.getContext('2d', { alpha: false }) : null;
+        let game6Width, game6Height;
+
+        function resizeGame6Canvas() {
+            game6Width = window.innerWidth;
+            game6Height = window.innerHeight;
+            if (game6Canvas) {
+                game6Canvas.width = game6Width;
+                game6Canvas.height = game6Height;
+                console.log('Game6 canvas resized to:', game6Width, 'x', game6Height);
+            }
+        }
+
+        if (game6Canvas) {
+            resizeGame6Canvas();
+        }
+        window.addEventListener('resize', resizeGame6Canvas);
+
+        // Flying emoji particle (for explosion)
+        class Game6FlyingEmoji {
+            constructor(x, y, emoji) {
+                this.x = x;
+                this.y = y;
+                this.char = emoji;
+                this.size = 30 + Math.random() * 20;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 3 + Math.random() * 4;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.rotation += this.rotationSpeed;
+            }
+
+            draw() {
+                game6Ctx.save();
+                game6Ctx.translate(this.x, this.y);
+                game6Ctx.rotate(this.rotation);
+                game6Ctx.font = `${this.size}px sans-serif`;
+                game6Ctx.textAlign = 'center';
+                game6Ctx.textBaseline = 'middle';
+                game6Ctx.fillText(this.char, 0, 0);
+                game6Ctx.restore();
+            }
+
+            isDead() {
+                const margin = 100;
+                return this.x < -margin ||
+                       this.x > game6Width + margin ||
+                       this.y < -margin ||
+                       this.y > game6Height + margin;
+            }
+        }
+
+        // Emoji Person character
+        class EmojiPerson {
+            constructor(personType, direction) {
+                this.type = personType;
+                this.direction = direction; // 1 for right, -1 for left
+
+                // Start position based on direction
+                if (this.direction > 0) {
+                    this.x = -100; // Start from left
+                } else {
+                    this.x = game6Width + 100; // Start from right
+                }
+
+                this.y = game6Height / 2 + (Math.random() - 0.5) * 300;
+                this.speed = (0.5 + Math.random() * 0.5) * this.direction;
+                this.bobPhase = Math.random() * Math.PI * 2;
+                this.bobSpeed = 0.02;
+                this.active = true;
+
+                // Define different emoji people (many more variations!)
+                this.people = {
+                    'happy': {
+                        hat: '🎩',
+                        head: '😊',
+                        body: ['🟡', '🟡'],
+                        arms: ['👋', '👋'],
+                        legs: ['🟡', '🟡'],
+                        feet: ['👟', '👟']
+                    },
+                    'cool': {
+                        hat: '🧢',
+                        head: '😎',
+                        body: ['🔵', '🔵'],
+                        arms: ['🤙', '🤙'],
+                        legs: ['🔵', '🔵'],
+                        feet: ['👟', '👟']
+                    },
+                    'nerd': {
+                        hat: '🎓',
+                        head: '🤓',
+                        body: ['📚', '📚'],
+                        arms: ['👍', '👍'],
+                        legs: ['📘', '📘'],
+                        feet: ['👞', '👞']
+                    },
+                    'party': {
+                        hat: '🎉',
+                        head: '🥳',
+                        body: ['🎊', '🎊'],
+                        arms: ['🎈', '🎈'],
+                        legs: ['🎊', '🎊'],
+                        feet: ['👠', '👠']
+                    },
+                    'sleepy': {
+                        hat: '😴',
+                        head: '😴',
+                        body: ['💤', '💤'],
+                        arms: ['🤚', '🤚'],
+                        legs: ['💤', '💤'],
+                        feet: ['🩴', '🩴']
+                    },
+                    'robot': {
+                        hat: '📡',
+                        head: '🤖',
+                        body: ['⚙️', '⚙️'],
+                        arms: ['🦾', '🦾'],
+                        legs: ['⚙️', '⚙️'],
+                        feet: ['🔩', '🔩']
+                    },
+                    'chef': {
+                        hat: '👨‍🍳',
+                        head: '😋',
+                        body: ['🍳', '🍳'],
+                        arms: ['🍴', '🍴'],
+                        legs: ['🥘', '🥘'],
+                        feet: ['👞', '👞']
+                    },
+                    'sports': {
+                        hat: '⚽',
+                        head: '💪',
+                        body: ['🏃', '🏃'],
+                        arms: ['🏀', '🏈'],
+                        legs: ['⚽', '⚽'],
+                        feet: ['👟', '👟']
+                    },
+                    'lightbulb': {
+                        hat: '🎩',
+                        head: '💡',
+                        body: ['💡', '💡'],
+                        arms: ['💡', '💡'],
+                        legs: ['💡', '💡'],
+                        feet: ['⚡', '⚡']
+                    },
+                    'fire': {
+                        hat: '👑',
+                        head: '🔥',
+                        body: ['🔥', '🔥'],
+                        arms: ['🔥', '🔥'],
+                        legs: ['🔥', '🔥'],
+                        feet: ['🌋', '🌋']
+                    },
+                    'plant': {
+                        hat: '🌺',
+                        head: '🌻',
+                        body: ['🌿', '🌿'],
+                        arms: ['🌱', '🌱'],
+                        legs: ['🌿', '🌿'],
+                        feet: ['🍄', '🍄']
+                    },
+                    'star': {
+                        hat: '👑',
+                        head: '⭐',
+                        body: ['✨', '✨'],
+                        arms: ['⭐', '⭐'],
+                        legs: ['✨', '✨'],
+                        feet: ['🌟', '🌟']
+                    },
+                    'sweet': {
+                        hat: '🎀',
+                        head: '🍬',
+                        body: ['🍭', '🍭'],
+                        arms: ['🍬', '🍬'],
+                        legs: ['🍭', '🍭'],
+                        feet: ['🍰', '🍰']
+                    },
+                    'music': {
+                        hat: '🎸',
+                        head: '🎵',
+                        body: ['🎸', '🎸'],
+                        arms: ['🎵', '🎵'],
+                        legs: ['🎶', '🎶'],
+                        feet: ['🎤', '🎤']
+                    },
+                    'ocean': {
+                        hat: '🏴‍☠️',
+                        head: '🐟',
+                        body: ['🌊', '🌊'],
+                        arms: ['🐚', '🐚'],
+                        legs: ['🌊', '🌊'],
+                        feet: ['⚓', '⚓']
+                    },
+                    'space': {
+                        hat: '🛸',
+                        head: '👾',
+                        body: ['🌙', '🪐'],
+                        arms: ['☄️', '☄️'],
+                        legs: ['🌙', '🪐'],
+                        feet: ['🚀', '🚀']
+                    },
+                    'weather': {
+                        hat: '☁️',
+                        head: '🌞',
+                        body: ['⛅', '⛅'],
+                        arms: ['🌈', '⚡'],
+                        legs: ['☁️', '☁️'],
+                        feet: ['❄️', '❄️']
+                    },
+                    'artist': {
+                        hat: '🎨',
+                        head: '😌',
+                        body: ['🖼️', '🖼️'],
+                        arms: ['🖌️', '✏️'],
+                        legs: ['🎨', '🎨'],
+                        feet: ['👠', '👠']
+                    },
+                    'magic': {
+                        hat: '🎩',
+                        head: '✨',
+                        body: ['🔮', '🔮'],
+                        arms: ['🪄', '🪄'],
+                        legs: ['✨', '✨'],
+                        feet: ['🌟', '🌟']
+                    },
+                    'pirate': {
+                        hat: '🏴‍☠️',
+                        head: '😈',
+                        body: ['⚔️', '⚔️'],
+                        arms: ['🗡️', '🪝'],
+                        legs: ['🦴', '🦴'],
+                        feet: ['🦜', '🦜']
+                    },
+                    'winter': {
+                        hat: '⛄',
+                        head: '🥶',
+                        body: ['❄️', '❄️'],
+                        arms: ['🧊', '🧊'],
+                        legs: ['❄️', '❄️'],
+                        feet: ['⛷️', '⛷️']
+                    },
+                    'fruit': {
+                        hat: '🍒',
+                        head: '🍎',
+                        body: ['🍊', '🍋'],
+                        arms: ['🍌', '🍉'],
+                        legs: ['🍇', '🍓'],
+                        feet: ['🍑', '🍑']
+                    },
+                    'tools': {
+                        hat: '⚒️',
+                        head: '🔧',
+                        body: ['🔨', '🔨'],
+                        arms: ['🪛', '🪚'],
+                        legs: ['🔩', '🔩'],
+                        feet: ['🥾', '🥾']
+                    },
+                    'gem': {
+                        hat: '👑',
+                        head: '💎',
+                        body: ['💍', '💍'],
+                        arms: ['💎', '💎'],
+                        legs: ['💍', '💍'],
+                        feet: ['👠', '👠']
+                    }
+                };
+
+                this.parts = this.people[this.type];
+            }
+
+            update(dt) {
+                if (!this.active) return;
+
+                this.x += this.speed * dt / 16;
+                this.bobPhase += this.bobSpeed * dt / 16;
+
+                // Remove when off screen (check both directions)
+                if (this.direction > 0 && this.x > game6Width + 100) {
+                    this.active = false;
+                } else if (this.direction < 0 && this.x < -100) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                if (!this.active) return;
+
+                const bobOffset = Math.sin(this.bobPhase) * 5;
+                const centerX = this.x;
+                const centerY = this.y + bobOffset;
+                const emojiSize = 40;
+
+                game6Ctx.save();
+                game6Ctx.font = `${emojiSize}px sans-serif`;
+                game6Ctx.textAlign = 'center';
+                game6Ctx.textBaseline = 'middle';
+
+                // Draw hat
+                game6Ctx.fillText(this.parts.hat, centerX, centerY - emojiSize * 2.5);
+
+                // Draw head
+                game6Ctx.fillText(this.parts.head, centerX, centerY - emojiSize * 1.5);
+
+                // Draw body
+                game6Ctx.fillText(this.parts.body[0], centerX, centerY - emojiSize * 0.5);
+                game6Ctx.fillText(this.parts.body[1], centerX, centerY + emojiSize * 0.5);
+
+                // Draw arms
+                const armBob = Math.sin(this.bobPhase * 2) * 3;
+                game6Ctx.fillText(this.parts.arms[0], centerX - emojiSize, centerY - emojiSize * 0.5 + armBob);
+                game6Ctx.fillText(this.parts.arms[1], centerX + emojiSize, centerY - emojiSize * 0.5 - armBob);
+
+                // Draw legs (with walking motion)
+                const legBob = Math.sin(this.bobPhase * 3) * 5;
+                game6Ctx.fillText(this.parts.legs[0], centerX - emojiSize * 0.3, centerY + emojiSize * 1.5 + legBob);
+                game6Ctx.fillText(this.parts.legs[1], centerX + emojiSize * 0.3, centerY + emojiSize * 1.5 - legBob);
+
+                // Draw feet
+                game6Ctx.fillText(this.parts.feet[0], centerX - emojiSize * 0.3, centerY + emojiSize * 2.5 + legBob);
+                game6Ctx.fillText(this.parts.feet[1], centerX + emojiSize * 0.3, centerY + emojiSize * 2.5 - legBob);
+
+                game6Ctx.restore();
+            }
+
+            checkHit(x, y) {
+                if (!this.active) return false;
+                const dx = x - this.x;
+                const dy = y - this.y;
+                return Math.sqrt(dx * dx + dy * dy) < 100;
+            }
+
+            explode() {
+                if (!this.active) return [];
+
+                const bobOffset = Math.sin(this.bobPhase) * 5;
+                const centerX = this.x;
+                const centerY = this.y + bobOffset;
+                const emojiSize = 40;
+
+                const particles = [];
+
+                // Create particles for each body part
+                particles.push(new Game6FlyingEmoji(centerX, centerY - emojiSize * 2.5, this.parts.hat));
+                particles.push(new Game6FlyingEmoji(centerX, centerY - emojiSize * 1.5, this.parts.head));
+                particles.push(new Game6FlyingEmoji(centerX, centerY - emojiSize * 0.5, this.parts.body[0]));
+                particles.push(new Game6FlyingEmoji(centerX, centerY + emojiSize * 0.5, this.parts.body[1]));
+                particles.push(new Game6FlyingEmoji(centerX - emojiSize, centerY - emojiSize * 0.5, this.parts.arms[0]));
+                particles.push(new Game6FlyingEmoji(centerX + emojiSize, centerY - emojiSize * 0.5, this.parts.arms[1]));
+                particles.push(new Game6FlyingEmoji(centerX - emojiSize * 0.3, centerY + emojiSize * 1.5, this.parts.legs[0]));
+                particles.push(new Game6FlyingEmoji(centerX + emojiSize * 0.3, centerY + emojiSize * 1.5, this.parts.legs[1]));
+                particles.push(new Game6FlyingEmoji(centerX - emojiSize * 0.3, centerY + emojiSize * 2.5, this.parts.feet[0]));
+                particles.push(new Game6FlyingEmoji(centerX + emojiSize * 0.3, centerY + emojiSize * 2.5, this.parts.feet[1]));
+
+                this.active = false;
+                return particles;
+            }
+        }
+
+        const game6People = [];
+        const game6Particles = [];
+        let game6LastSpawn = 0;
+        const GAME6_SPAWN_INTERVAL = 1500; // Spawn new person every 1.5 seconds
+        let game6LastTime = performance.now();
+
+        // Game 6 Hieroglyphs (same as menu/game1)
+        class Game6Hieroglyph {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * game6Width;
+                this.y = Math.random() * game6Height;
+                this.char = hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
+                const sizes = [20, 35, 50];
+                this.size = sizes[Math.floor(Math.random() * sizes.length)];
+                this.opacity = 0;
+                this.targetOpacity = 0.3 + Math.random() * 0.7;
+                this.pulseSpeed = 0.001 + Math.random() * 0.002;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.002;
+                this.fadeIn = true;
+                this.fadeSpeed = 0.01 + Math.random() * 0.02;
+                this.lifetime = 5000 + Math.random() * 10000;
+                this.age = 0;
+                this.active = true;
+            }
+
+            update(dt) {
+                if (!this.active) return;
+
+                this.age += dt;
+
+                if (this.fadeIn && this.opacity < this.targetOpacity) {
+                    this.opacity += this.fadeSpeed * dt / 16;
+                    if (this.opacity >= this.targetOpacity) {
+                        this.fadeIn = false;
+                    }
+                }
+
+                if (this.age > this.lifetime - 1000) {
+                    this.opacity -= 0.001 * dt;
+                    if (this.opacity <= 0) {
+                        this.active = false;
+                        return;
+                    }
+                }
+
+                this.pulsePhase += this.pulseSpeed * dt;
+                this.rotation += this.rotationSpeed * dt;
+            }
+
+            draw() {
+                if (!this.active || this.opacity <= 0) return;
+
+                const pulse = Math.sin(this.pulsePhase) * 0.15 + 0.85;
+                const finalOpacity = this.opacity * pulse;
+
+                game6Ctx.save();
+                game6Ctx.translate(this.x, this.y);
+                game6Ctx.rotate(this.rotation);
+                game6Ctx.globalAlpha = finalOpacity;
+                game6Ctx.font = `${this.size}px "Noto Sans Egyptian Hieroglyphs", serif`;
+                game6Ctx.fillStyle = '#d4af37';
+                game6Ctx.textAlign = 'center';
+                game6Ctx.textBaseline = 'middle';
+                game6Ctx.fillText(this.char, 0, 0);
+                game6Ctx.restore();
+            }
+        }
+
+        const game6HieroglyphPool = [];
+        const MAX_GAME6_HIEROGLYPHS = 50;
+
+        for (let i = 0; i < MAX_GAME6_HIEROGLYPHS; i++) {
+            game6HieroglyphPool.push(new Game6Hieroglyph());
+        }
+
+        function spawnRandomPerson() {
+            const types = [
+                'happy', 'cool', 'nerd', 'party', 'sleepy', 'robot', 'chef', 'sports',
+                'lightbulb', 'fire', 'plant', 'star', 'sweet', 'music', 'ocean', 'space',
+                'weather', 'artist', 'magic', 'pirate', 'winter', 'fruit', 'tools', 'gem'
+            ];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            const randomDirection = Math.random() > 0.5 ? 1 : -1; // Random direction
+            game6People.push(new EmojiPerson(randomType, randomDirection));
+        }
+
+        function animateGame6(currentTime) {
+            if (currentScreen !== 'game6') return;
+            if (!game6Ctx) {
+                console.error('Game 6 context not available');
+                return;
+            }
+
+            game6AnimationId = requestAnimationFrame(animateGame6);
+
+            const dt = Math.min(currentTime - game6LastTime, 50);
+            game6LastTime = currentTime;
+
+            // Clear screen with black
+            game6Ctx.fillStyle = '#000';
+            game6Ctx.fillRect(0, 0, game6Width, game6Height);
+
+            // Update and draw hieroglyphs background
+            for (let i = 0; i < game6HieroglyphPool.length; i++) {
+                game6HieroglyphPool[i].update(dt);
+                if (!game6HieroglyphPool[i].active) {
+                    game6HieroglyphPool[i].reset();
+                }
+            }
+
+            for (let i = 0; i < game6HieroglyphPool.length; i++) {
+                game6HieroglyphPool[i].draw();
+            }
+
+            // Spawn new people
+            if (currentTime - game6LastSpawn > GAME6_SPAWN_INTERVAL) {
+                spawnRandomPerson();
+                game6LastSpawn = currentTime;
+            }
+
+            // Update and draw people
+            for (let i = game6People.length - 1; i >= 0; i--) {
+                game6People[i].update(dt);
+                game6People[i].draw();
+                if (!game6People[i].active) {
+                    game6People.splice(i, 1);
+                }
+            }
+
+            // Update and draw particles
+            for (let i = game6Particles.length - 1; i >= 0; i--) {
+                game6Particles[i].update();
+                game6Particles[i].draw();
+                if (game6Particles[i].isDead()) {
+                    game6Particles.splice(i, 1);
+                }
+            }
+        }
+
+        function handleGame6Touch(x, y) {
+            for (let i = game6People.length - 1; i >= 0; i--) {
+                if (game6People[i].checkHit(x, y)) {
+                    const newParticles = game6People[i].explode();
+                    game6Particles.push(...newParticles);
+                    break;
+                }
+            }
+        }
+
+        game6Canvas.addEventListener('click', (e) => {
+            const rect = game6Canvas.getBoundingClientRect();
+            handleGame6Touch(e.clientX - rect.left, e.clientY - rect.top);
+        });
+
+        game6Canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = game6Canvas.getBoundingClientRect();
+            for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                handleGame6Touch(touch.clientX - rect.left, touch.clientY - rect.top);
+            }
+        });
+
+        function startGame6() {
+            console.log('Starting game 6, game6Ctx:', game6Ctx, 'game6Width:', game6Width, 'game6Height:', game6Height);
+            if (!game6Ctx) {
+                console.error('Cannot start game 6 - no context');
+                return;
+            }
+            // Clear any existing people and particles
+            game6People.length = 0;
+            game6Particles.length = 0;
+            game6LastSpawn = performance.now();
+            game6LastTime = performance.now();
+
+            // Spawn multiple people at start
+            for (let i = 0; i < 3; i++) {
+                spawnRandomPerson();
+            }
+
+            animateGame6(game6LastTime);
         }
 
         // Start menu animation on load
