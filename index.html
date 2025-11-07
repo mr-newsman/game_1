@@ -735,8 +735,13 @@
         }
         window.addEventListener('resize', resizeMenuCanvas);
 
-        // Egyptian Hieroglyphs
-        const EXCLUDED_GLYPHS = [0x130B8, 0x130B9, 0x130BA];
+        // Egyptian Hieroglyphs (with exclusions for inappropriate glyphs)
+        const EXCLUDED_GLYPHS = [
+            0x130B8, 0x130B9, 0x130BA, // Original exclusions
+            0x130B2, 0x130B3, 0x130B4, // D52-D54 (anatomical)
+            0x130B5, 0x130B6, 0x130B7, // D55-D57 (anatomical)
+            0x1309C, 0x1309D, 0x1309E, // D20-D22 (mouth/face that could be misread)
+        ];
         const hieroglyphs = [];
         for (let i = 0x13000; i <= 0x1342E; i++) {
             if (!EXCLUDED_GLYPHS.includes(i)) {
