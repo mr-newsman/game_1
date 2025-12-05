@@ -2253,6 +2253,7 @@
         let game5Scene, game5Camera, game5Renderer, game5Controls;
         let game5Planets = [];
         let game5Sun, game5Stars;
+        let game5SunGlow;
         let game5FocusedPlanet = null;
         let game5TargetCameraPosition = null;
         let game5TargetLookAt = null;
@@ -2425,137 +2426,269 @@
             const container = document.getElementById('game5-canvas-container');
             game5Scene = new THREE.Scene();
             game5Camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-            game5Renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            game5Renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", precision: "mediump" });
             game5Renderer.setSize(window.innerWidth, window.innerHeight);
             game5Renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             game5Renderer.setClearColor(0x000000, 1);
             container.innerHTML = '';
             container.appendChild(game5Renderer.domElement);
+
+            // Prevent default touch behaviors
+            game5Renderer.domElement.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+            game5Renderer.domElement.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+            game5Renderer.domElement.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
+            game5Renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+
             game5Controls = new THREE.OrbitControls(game5Camera, game5Renderer.domElement);
             game5Controls.enableDamping = true;
             game5Controls.dampingFactor = 0.05;
-            game5Controls.minDistance = 10;
-            game5Controls.maxDistance = 500;
-            game5Controls.enablePan = false;
+            game5Controls.minDistance = 5;
+            game5Controls.maxDistance = 400;
+            game5Controls.enableZoom = true;
+            game5Controls.enablePan = true;
+            game5Controls.enableRotate = true;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            game5Scene.add(ambientLight);
+
+            const sunLight = new THREE.PointLight(0xffff99, 2, 800);
+            sunLight.position.set(0, 0, 0);
+            game5Scene.add(sunLight);
 
             // Create sun
-            game5Sun = createGame5EmojiSphere('☀️', 8, 15);
+            game5Sun = createGame5EmojiSphere('☀️', 15, 5);
             game5Scene.add(game5Sun);
 
-            // Create planets
+            // Add glow to sun
+            const sunGlowGeometry = new THREE.SphereGeometry(15, 32, 32);
+            const sunGlowMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffaa00,
+                transparent: true,
+                opacity: 0.15
+            });
+            game5SunGlow = new THREE.Mesh(sunGlowGeometry, sunGlowMaterial);
+            game5Scene.add(game5SunGlow);
+
+            // Create planets (matching working.html structure)
             game5Planets = [];
             const planetData = [
-                { emoji: '🪨', radius: 1.5, distance: 20, speed: 0.02, name: 'Mercury' },
-                { emoji: '🌋', radius: 2.5, distance: 35, speed: 0.015, name: 'Venus' },
-                { emoji: '🌍', radius: 3, distance: 50, speed: 0.01, name: 'Earth' },
-                { emoji: '🔴', radius: 2.2, distance: 70, speed: 0.008, name: 'Mars' },
-                { emoji: '🟠', radius: 6, distance: 110, speed: 0.004, name: 'Jupiter' },
-                { emoji: '💍', radius: 5, distance: 150, speed: 0.003, name: 'Saturn' },
-                { emoji: '🧊', radius: 4, distance: 190, speed: 0.002, name: 'Uranus' },
-                { emoji: '🔵', radius: 3.8, distance: 230, speed: 0.0015, name: 'Neptune' },
-                { isPlanetX: true, radius: 4, distance: 280, speed: 0.001, name: 'Planet X' }
+                { name: 'Mercury', emoji: '🪨', size: 3, distance: 25, orbitSpeed: 4.7, rotationSpeed: 0.01 },
+                { name: 'Venus', emoji: '🟡', size: 4.5, distance: 35, orbitSpeed: 3.5, rotationSpeed: 0.008 },
+                { name: 'Earth', emoji: '🌍', size: 5, distance: 50, orbitSpeed: 3.0, rotationSpeed: 0.015 },
+                { name: 'Mars', emoji: '🔴', size: 4, distance: 65, orbitSpeed: 2.4, rotationSpeed: 0.014 },
+                { name: 'Jupiter', emoji: '🟠', size: 12, distance: 90, orbitSpeed: 1.3, rotationSpeed: 0.025 },
+                { name: 'Saturn', emoji: '🪐', size: 11, distance: 120, orbitSpeed: 0.97, rotationSpeed: 0.022 },
+                { name: 'Uranus', emoji: '🔵', size: 7, distance: 150, orbitSpeed: 0.68, rotationSpeed: 0.018 },
+                { name: 'Neptune', emoji: '💙', size: 7, distance: 180, orbitSpeed: 0.54, rotationSpeed: 0.017 }
             ];
 
-            planetData.forEach((data, index) => {
+            planetData.forEach((data) => {
                 const orbitRing = createGame5OrbitRing(data.distance);
                 game5Scene.add(orbitRing);
-                let planetGroup;
-                if (data.isPlanetX) {
-                    planetGroup = createGame5PlanetX(data.radius, 12);
-                } else {
-                    planetGroup = createGame5EmojiSphere(data.emoji, data.radius, 10);
-                }
-                const orbitContainer = new THREE.Group();
-                orbitContainer.add(planetGroup);
-                planetGroup.position.x = data.distance;
-                game5Scene.add(orbitContainer);
+
+                const planetGroup = createGame5EmojiSphere(data.emoji, data.size, 6);
+                game5Scene.add(planetGroup);
+
                 game5Planets.push({
-                    container: orbitContainer,
-                    planet: planetGroup,
+                    mesh: planetGroup,
                     distance: data.distance,
-                    speed: data.speed,
+                    orbitSpeed: data.orbitSpeed,
+                    rotationSpeed: data.rotationSpeed,
                     angle: Math.random() * Math.PI * 2,
                     name: data.name,
-                    radius: data.radius,
-                    isPlanetX: data.isPlanetX || false
+                    size: data.size,
+                    spinBoost: 0,
+                    isPlanetX: false
                 });
             });
 
-            // Create stars
-            const starGeometry = new THREE.BufferGeometry();
-            const starCount = 2000;
-            const starPositions = new Float32Array(starCount * 3);
-            for (let i = 0; i < starCount * 3; i += 3) {
-                const radius = 400 + Math.random() * 600;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos((Math.random() * 2) - 1);
-                starPositions[i] = radius * Math.sin(phi) * Math.cos(theta);
-                starPositions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
-                starPositions[i + 2] = radius * Math.cos(phi);
+            // Create Planet X - the mysterious planet with Egyptian hieroglyphs
+            const planetXDistance = 210;
+            const planetXOrbit = createGame5OrbitRing(planetXDistance);
+            planetXOrbit.material.color.setHex(0xFFD700); // Gold orbit ring
+            planetXOrbit.material.opacity = 0.5;
+            game5Scene.add(planetXOrbit);
+
+            const planetX = createGame5PlanetX(12, 8);
+            game5Scene.add(planetX);
+
+            game5Planets.push({
+                mesh: planetX,
+                distance: planetXDistance,
+                orbitSpeed: 0.3,
+                rotationSpeed: 0.01,
+                angle: 0,
+                name: 'Planet X',
+                size: 12,
+                spinBoost: 0,
+                isPlanetX: true
+            });
+
+            // Create stars background
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsMaterial = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.7,
+                transparent: true
+            });
+
+            const starsVertices = [];
+            for (let i = 0; i < 2000; i++) {
+                const x = (Math.random() - 0.5) * 1500;
+                const y = (Math.random() - 0.5) * 1500;
+                const z = (Math.random() - 0.5) * 1500;
+                starsVertices.push(x, y, z);
             }
-            starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1, sizeAttenuation: true });
-            game5Stars = new THREE.Points(starGeometry, starMaterial);
+
+            starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+            game5Stars = new THREE.Points(starsGeometry, starsMaterial);
             game5Scene.add(game5Stars);
 
-            game5Camera.position.set(0, 100, 200);
+            game5Camera.position.set(0, 80, 150);
+            game5Camera.lookAt(0, 0, 0);
             game5Controls.target.set(0, 0, 0);
             game5Controls.update();
 
-            // Add click handler
+            // Raycaster for click detection
             const raycaster = new THREE.Raycaster();
+            raycaster.params.Sprite = { threshold: 2 };
             const mouse = new THREE.Vector2();
 
             function onGame5Click(event) {
                 if (currentScreen !== 'game5') return;
-                const rect = game5Renderer.domElement.getBoundingClientRect();
-                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                // Handle both mouse and touch events
+                let clientX, clientY;
+
+                if (event.type === 'touchend' || event.type === 'touchstart') {
+                    if (event.changedTouches && event.changedTouches.length > 0) {
+                        clientX = event.changedTouches[0].clientX;
+                        clientY = event.changedTouches[0].clientY;
+                    } else {
+                        return;
+                    }
+                } else {
+                    clientX = event.clientX;
+                    clientY = event.clientY;
+                }
+
+                mouse.x = (clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
                 raycaster.setFromCamera(mouse, game5Camera);
 
-                let clickedPlanet = null;
-                for (const planetObj of game5Planets) {
-                    const planetWorldPos = new THREE.Vector3();
-                    planetObj.planet.getWorldPosition(planetWorldPos);
-                    const distanceToRay = raycaster.ray.distanceToPoint(planetWorldPos);
-                    if (distanceToRay < planetObj.radius * 2) {
-                        clickedPlanet = planetObj;
-                        break;
+                let planetClicked = false;
+
+                // Check for clicks on planets
+                game5Planets.forEach(planetObj => {
+                    const intersects = raycaster.intersectObjects(planetObj.mesh.children);
+                    if (intersects.length > 0) {
+                        planetClicked = true;
+
+                        // If not already focused on this planet, focus on it
+                        if (game5FocusedPlanet !== planetObj && !game5IsTransitioning) {
+                            game5FocusedPlanet = planetObj;
+                            game5IsTransitioning = true;
+
+                            // Calculate camera position
+                            const distance = planetObj.size * 8;
+                            const direction = new THREE.Vector3()
+                                .subVectors(game5Camera.position, planetObj.mesh.position)
+                                .normalize();
+
+                            game5TargetCameraPosition = new THREE.Vector3()
+                                .copy(planetObj.mesh.position)
+                                .add(direction.multiplyScalar(distance));
+
+                            game5TargetLookAt = planetObj.mesh.position.clone();
+                        }
+
+                        // Always add spin boost when clicked
+                        planetObj.spinBoost += 0.3;
                     }
-                }
-                // Check sun
-                const sunWorldPos = new THREE.Vector3();
-                game5Sun.getWorldPosition(sunWorldPos);
-                if (raycaster.ray.distanceToPoint(sunWorldPos) < 10) {
-                    clickedPlanet = { planet: game5Sun, name: 'Sun', radius: 8, isSun: true };
+                });
+
+                // Check for click on sun
+                const sunIntersects = raycaster.intersectObjects(game5Sun.children);
+                if (sunIntersects.length > 0) {
+                    planetClicked = true;
+
+                    if ((!game5FocusedPlanet || game5FocusedPlanet.name !== 'Sun') && !game5IsTransitioning) {
+                        game5FocusedPlanet = { name: 'Sun', mesh: game5Sun, size: 15 };
+                        game5IsTransitioning = true;
+
+                        const distance = 120;
+                        const direction = new THREE.Vector3()
+                            .subVectors(game5Camera.position, game5Sun.position)
+                            .normalize();
+
+                        game5TargetCameraPosition = new THREE.Vector3()
+                            .copy(game5Sun.position)
+                            .add(direction.multiplyScalar(distance));
+
+                        game5TargetLookAt = game5Sun.position.clone();
+                    }
+
+                    game5Sun.rotation.y += 0.5;
                 }
 
-                if (clickedPlanet) {
-                    game5EmptySpaceClickCount = 0;
-                    game5FocusedPlanet = clickedPlanet;
-                    game5IsTransitioning = true;
-                } else {
+                // If clicked empty space
+                if (!planetClicked) {
+                    // Unfocus if currently focused
+                    if (game5FocusedPlanet && !game5IsTransitioning) {
+                        game5FocusedPlanet = null;
+                        game5TargetCameraPosition = null;
+                        game5TargetLookAt = null;
+                        game5IsTransitioning = false;
+                        game5Controls.enabled = true;
+                        game5Controls.enableZoom = true;
+                        game5Controls.enablePan = true;
+                        game5Controls.enableRotate = true;
+                        game5Controls.target.set(0, 0, 0);
+                    }
+
+                    // Easter eggs on empty space clicks
                     game5EmptySpaceClickCount++;
                     if (game5EmptySpaceClickCount % 5 === 0) {
                         game5SpawnRockets(mouse, game5Camera);
                     } else {
                         game5SpawnGlyph(mouse, game5Camera);
                     }
-                    if (game5FocusedPlanet) {
-                        game5FocusedPlanet = null;
-                        game5IsTransitioning = true;
-                        game5TargetCameraPosition = new THREE.Vector3(0, 100, 200);
-                        game5TargetLookAt = new THREE.Vector3(0, 0, 0);
-                    }
                 }
             }
-            game5Renderer.domElement.addEventListener('click', onGame5Click);
 
+            // Add both click and touch event listeners
+            window.addEventListener('click', onGame5Click, { passive: false });
+            window.addEventListener('touchend', onGame5Click, { passive: false });
+
+            // Prevent multi-touch zoom gestures
+            document.addEventListener('gesturestart', (e) => e.preventDefault());
+            document.addEventListener('gesturechange', (e) => e.preventDefault());
+            document.addEventListener('gestureend', (e) => e.preventDefault());
+
+            // Handle window resize with debouncing
+            let resizeTimeout;
             window.addEventListener('resize', () => {
-                if (currentScreen !== 'game5') return;
-                game5Camera.aspect = window.innerWidth / window.innerHeight;
-                game5Camera.updateProjectionMatrix();
-                game5Renderer.setSize(window.innerWidth, window.innerHeight);
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (currentScreen !== 'game5') return;
+                    game5Camera.aspect = window.innerWidth / window.innerHeight;
+                    game5Camera.updateProjectionMatrix();
+                    game5Renderer.setSize(window.innerWidth, window.innerHeight);
+                    game5Renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                }, 100);
+            });
+
+            // Handle orientation change for mobile
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    if (currentScreen !== 'game5') return;
+                    game5Camera.aspect = window.innerWidth / window.innerHeight;
+                    game5Camera.updateProjectionMatrix();
+                    game5Renderer.setSize(window.innerWidth, window.innerHeight);
+                    game5Renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                }, 100);
             });
         }
 
@@ -2563,75 +2696,126 @@
             if (currentScreen !== 'game5') return;
             game5AnimationId = requestAnimationFrame(animateGame5);
 
-            // Rotate sun
-            game5Sun.rotation.y += 0.002;
+            // Handle camera focusing animation (only during transition)
+            if (game5IsTransitioning && game5FocusedPlanet && game5TargetCameraPosition && game5TargetLookAt) {
+                // Update target position if planet is moving (during transition only)
+                if (game5FocusedPlanet.mesh) {
+                    const distance = game5FocusedPlanet.size * 8;
+                    const direction = new THREE.Vector3()
+                        .subVectors(game5Camera.position, game5FocusedPlanet.mesh.position)
+                        .normalize();
 
-            // Update planets
+                    game5TargetCameraPosition.copy(game5FocusedPlanet.mesh.position)
+                        .add(direction.multiplyScalar(distance));
+                    game5TargetLookAt.copy(game5FocusedPlanet.mesh.position);
+                }
+
+                // Smoothly interpolate camera position
+                game5Camera.position.lerp(game5TargetCameraPosition, game5FocusTransitionSpeed);
+                game5Controls.target.lerp(game5TargetLookAt, game5FocusTransitionSpeed);
+
+                // Check if transition is complete
+                const distanceToTarget = game5Camera.position.distanceTo(game5TargetCameraPosition);
+                if (distanceToTarget < 1) {
+                    // Completely clear the focus state
+                    game5IsTransitioning = false;
+                    game5FocusedPlanet = null;
+                    game5TargetCameraPosition = null;
+                    game5TargetLookAt = null;
+                }
+            }
+
+            // Always update controls
+            game5Controls.update();
+
+            // Update planet positions and rotations
             game5Planets.forEach(planetObj => {
-                planetObj.angle += planetObj.speed;
-                planetObj.planet.position.x = Math.cos(planetObj.angle) * planetObj.distance;
-                planetObj.planet.position.z = Math.sin(planetObj.angle) * planetObj.distance;
-                planetObj.planet.rotation.y += 0.01;
+                // Orbital movement
+                planetObj.angle += planetObj.orbitSpeed * 0.001;
 
-                // Update Planet X hieroglyphs
+                const x = Math.cos(planetObj.angle) * planetObj.distance;
+                const z = Math.sin(planetObj.angle) * planetObj.distance;
+
+                planetObj.mesh.position.set(x, 0, z);
+
+                // Planet rotation (spin on axis)
+                planetObj.mesh.rotation.y += planetObj.rotationSpeed + (planetObj.spinBoost * 0.3);
+
+                // Calculate expansion factor based on spin speed
+                const expansionMultiplier = 1 + (planetObj.spinBoost * 6);
+
+                // Apply radial expansion to all emojis/glyphs
+                planetObj.mesh.children.forEach(sprite => {
+                    if (sprite.userData.originalPosition && sprite.userData.baseRadius) {
+                        const direction = sprite.userData.originalPosition.clone().normalize();
+                        const newRadius = sprite.userData.baseRadius * expansionMultiplier;
+                        sprite.position.copy(direction.multiplyScalar(newRadius));
+                    }
+                });
+
+                // Decay spin boost
+                if (planetObj.spinBoost > 0) {
+                    planetObj.spinBoost *= 0.985;
+                }
+
+                // Special animation for Planet X hieroglyphs
                 if (planetObj.isPlanetX) {
-                    planetObj.planet.children.forEach(sprite => {
-                        if (sprite.userData.fadeDirection) {
-                            sprite.material.opacity += sprite.userData.fadeDirection * sprite.userData.fadeSpeed;
-                            if (sprite.material.opacity >= 1) {
-                                sprite.userData.fadeDirection = -1;
-                            } else if (sprite.material.opacity <= 0.3) {
-                                sprite.userData.fadeDirection = 1;
-                            }
-                            sprite.userData.changeTimer--;
-                            if (sprite.userData.changeTimer <= 0) {
-                                sprite.userData.changeTimer = Math.random() * 200 + 100;
-                                const newGlyph = getGame5RandomHieroglyph();
-                                sprite.material.map = createGame5HieroglyphTexture(newGlyph, 256);
-                                sprite.material.needsUpdate = true;
-                            }
+                    planetObj.mesh.children.forEach(sprite => {
+                        // Fade in/out animation
+                        sprite.material.opacity += sprite.userData.fadeDirection * sprite.userData.fadeSpeed;
+
+                        if (sprite.material.opacity >= 1.0) {
+                            sprite.material.opacity = 1.0;
+                            sprite.userData.fadeDirection = -1;
+                        } else if (sprite.material.opacity <= 0.2) {
+                            sprite.material.opacity = 0.2;
+                            sprite.userData.fadeDirection = 1;
+                        }
+
+                        // Change glyph periodically
+                        sprite.userData.changeTimer--;
+                        if (sprite.userData.changeTimer <= 0) {
+                            const newGlyph = getGame5RandomHieroglyph();
+                            const newTexture = createGame5HieroglyphTexture(newGlyph, 256);
+                            sprite.material.map = newTexture;
+                            sprite.material.needsUpdate = true;
+                            sprite.userData.changeTimer = Math.random() * 300 + 200;
                         }
                     });
                 }
             });
 
-            // Update flying objects
+            // Sun rotation
+            game5Sun.rotation.y += 0.005;
+
+            // Slow star rotation
+            game5Stars.rotation.y += 0.0001;
+
+            // Update flying objects (rockets and glyphs)
             for (let i = game5FlyingObjects.length - 1; i >= 0; i--) {
                 const obj = game5FlyingObjects[i];
-                obj.sprite.position.add(obj.velocity);
-                obj.life--;
-                if (obj.type === 'static') {
-                    obj.sprite.material.opacity -= 0.007;
-                } else {
-                    obj.sprite.material.opacity -= 0.005;
+
+                // Move object if it's a flying type (rockets)
+                if (obj.type === 'flying') {
+                    obj.sprite.position.add(obj.velocity);
                 }
-                if (obj.life <= 0 || obj.sprite.material.opacity <= 0) {
+
+                // Fade out over time
+                obj.life--;
+                const maxLife = obj.type === 'flying' ? 200 : 150;
+                obj.sprite.material.opacity = obj.life / maxLife;
+
+                // Remove when life expires
+                if (obj.life <= 0) {
                     game5Scene.remove(obj.sprite);
+                    obj.sprite.material.dispose();
+                    if (obj.sprite.material.map) {
+                        obj.sprite.material.map.dispose();
+                    }
                     game5FlyingObjects.splice(i, 1);
                 }
             }
 
-            // Camera transitions
-            if (game5IsTransitioning && game5FocusedPlanet) {
-                const targetPos = new THREE.Vector3();
-                game5FocusedPlanet.planet.getWorldPosition(targetPos);
-                const offset = game5FocusedPlanet.isSun ? 40 : game5FocusedPlanet.radius * 8;
-                game5TargetCameraPosition = targetPos.clone().add(new THREE.Vector3(offset, offset / 2, offset));
-                game5TargetLookAt = targetPos.clone();
-                game5Camera.position.lerp(game5TargetCameraPosition, game5FocusTransitionSpeed);
-                game5Controls.target.lerp(game5TargetLookAt, game5FocusTransitionSpeed);
-                if (game5Camera.position.distanceTo(game5TargetCameraPosition) < 1) {
-                    game5IsTransitioning = false;
-                }
-            } else if (game5IsTransitioning && !game5FocusedPlanet) {
-                game5Camera.position.lerp(game5TargetCameraPosition, game5FocusTransitionSpeed);
-                game5Controls.target.lerp(game5TargetLookAt, game5FocusTransitionSpeed);
-                if (game5Camera.position.distanceTo(game5TargetCameraPosition) < 1) {
-                    game5IsTransitioning = false;
-                }
-            }
-
-            game5Controls.update();
             game5Renderer.render(game5Scene, game5Camera);
         }
 
