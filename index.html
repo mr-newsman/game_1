@@ -2,9 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Game Collection</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,10 +13,6 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
         }
 
         body {
@@ -27,8 +21,6 @@
             width: 100vw;
             height: 100vh;
             position: fixed;
-            touch-action: none;
-            -webkit-touch-callout: none;
         }
 
         .screen {
@@ -715,12 +707,14 @@
             // Show new screen
             if (screenName === 'menu') {
                 document.getElementById('menu-screen').classList.add('active');
+                // Resize menu canvas after screen is visible
                 setTimeout(() => {
                     resizeMenuCanvas();
                     startMenuAnimation();
                 }, 0);
             } else if (screenName === 'game1') {
                 document.getElementById('game1-screen').classList.add('active');
+                // Resize game1 canvas after screen is visible
                 setTimeout(() => {
                     resizeGame1Canvas();
                     startGame1();
@@ -735,6 +729,7 @@
                 }
             } else if (screenName === 'game4') {
                 document.getElementById('game4-screen').classList.add('active');
+                // Resize game4 canvas after screen is visible
                 setTimeout(() => {
                     resizeGame4Canvas();
                     startGame4();
@@ -746,6 +741,7 @@
                 }, 0);
             } else if (screenName === 'game6') {
                 document.getElementById('game6-screen').classList.add('active');
+                // Resize game6 canvas after screen is visible
                 setTimeout(() => {
                     resizeGame6Canvas();
                     startGame6();
@@ -770,6 +766,7 @@
             }
         });
 
+        // Update button text when fullscreen changes
         document.addEventListener('fullscreenchange', function() {
             const btn = document.getElementById('menu-fullscreen-btn');
             if (document.fullscreenElement) {
@@ -802,11 +799,12 @@
         }
         window.addEventListener('resize', resizeMenuCanvas);
 
+        // Egyptian Hieroglyphs (with exclusions for inappropriate glyphs)
         const EXCLUDED_GLYPHS = [
-            0x130B8, 0x130B9, 0x130BA,
-            0x130B2, 0x130B3, 0x130B4,
-            0x130B5, 0x130B6, 0x130B7,
-            0x1309C, 0x1309D, 0x1309E,
+            0x130B8, 0x130B9, 0x130BA, // Original exclusions
+            0x130B2, 0x130B3, 0x130B4, // D52-D54 (anatomical)
+            0x130B5, 0x130B6, 0x130B7, // D55-D57 (anatomical)
+            0x1309C, 0x1309D, 0x1309E, // D20-D22 (mouth/face that could be misread)
         ];
         const hieroglyphs = [];
         for (let i = 0x13000; i <= 0x1342E; i++) {
@@ -815,6 +813,7 @@
             }
         }
 
+        // Sumerian Cuneiform symbols
         const cuneiform = [];
         for (let i = 0x12000; i <= 0x123FF; i++) {
             cuneiform.push(String.fromCodePoint(i));
@@ -1047,11 +1046,1209 @@
             animateMenu(menuLastTime);
         }
 
-        // ... [Game 1, 2, 3, 4, 6 code continues from original file - keeping it as is]
-        // Due to token limits, I'm not repeating all the game code here, but would include it in the full file
-    </script>
+        // ===== GAME 1 =====
+        const game1Canvas = document.getElementById('game1-canvas');
+        if (!game1Canvas) {
+            console.error('Game 1 canvas not found!');
+        }
+        const game1Ctx = game1Canvas ? game1Canvas.getContext('2d', { alpha: false }) : null;
+        let game1Width, game1Height;
 
-    <script>
+        function resizeGame1Canvas() {
+            game1Width = window.innerWidth;
+            game1Height = window.innerHeight;
+            if (game1Canvas) {
+                game1Canvas.width = game1Width;
+                game1Canvas.height = game1Height;
+                console.log('Game1 canvas resized to:', game1Width, 'x', game1Height);
+            }
+        }
+
+        if (game1Canvas) {
+            resizeGame1Canvas();
+        }
+        window.addEventListener('resize', resizeGame1Canvas);
+
+        // Safe emoji ranges with exclusions
+        const EMOJI_RANGES = [
+            [0x1F600, 0x1F64F],
+            [0x1F680, 0x1F6C5],
+            [0x1F6CB, 0x1F6D2],
+            [0x1F6E0, 0x1F6EC],
+            [0x1F910, 0x1F96B],
+            [0x1F980, 0x1F9E0],
+            [0x1F400, 0x1F43E],
+            [0x1F440, 0x1F450],
+            [0x1F300, 0x1F3FA],
+            [0x1F330, 0x1F37D],
+            [0x2600, 0x26FF],
+            [0x2700, 0x27BF],
+        ];
+
+        const BLOCKED_EMOJI = new Set([
+            // People/Family (all person emojis to avoid gender/relationship issues)
+            0x1F930, 0x1FAC3, 0x1FAC4, 0x1FAC5,
+            0x1F468, 0x1F469, 0x1F46A, 0x1F46B, 0x1F46C, 0x1F46D, 0x1F46E, 0x1F46F,
+            0x1F470, 0x1F471, 0x1F472, 0x1F473, 0x1F474, 0x1F475, 0x1F476, 0x1F477,
+            0x1F478, 0x1F479, 0x1F47A, 0x1F47B, 0x1F47C, 0x1F47D, 0x1F47E, 0x1F47F,
+            0x1F481, 0x1F482, 0x1F483, 0x1F484, 0x1F485, 0x1F486, 0x1F487,
+            0x1F574, 0x1F575, 0x1F57A,
+            0x1F645, 0x1F646, 0x1F647, 0x1F64B, 0x1F64C, 0x1F64D, 0x1F64E, 0x1F64F,
+            0x1F6B4, 0x1F6B5, 0x1F6B6, 0x1F6C0,
+            0x1F926, 0x1F937, 0x1F938, 0x1F939, 0x1F93A, 0x1F93C, 0x1F93D, 0x1F93E,
+
+            // Alcohol
+            0x1F37B, 0x1F37A, 0x1F377, 0x1F378, 0x1F379, 0x1F37C, 0x1F37E,
+
+            // Drugs/Medicine
+            0x1F48A, 0x1F489, 0x1F6AC,
+
+            // Weapons
+            0x1F52B, 0x1F5E1, 0x2694, 0x1F3F9, 0x1F4A3, 0x1F9E8, 0x1F52A, 0x2620,
+
+            // Inappropriate hand gestures
+            0x1F595, 0x1F446, 0x1F447, 0x1F448, 0x1F449, 0x1F44A, 0x1F44B, 0x1F44C, 0x1F44D, 0x1F44E, 0x1F44F,
+            0x1F450, 0x270A, 0x270B, 0x270C, 0x270D,
+            0x1F918, 0x1F919, 0x1F91A, 0x1F91B, 0x1F91C, 0x1F91D, 0x1F91E, 0x1F91F,
+            0x1F44B, 0x1F91A, 0x1F44F,
+
+            // Suggestive items
+            0x1F346, 0x1F351, 0x1F34C, 0x1F34D,
+
+            // Religious symbols (comprehensive)
+            0x262A, 0x262E, 0x262F, 0x2626, 0x2627, 0x271D, 0x2721,
+            0x1F52F, 0x1F54B, 0x1F54C, 0x1F54D, 0x1F54E, 0x1F6D0, 0x1F549,
+            0x2638, 0x2629, 0x1F52E,
+
+            // Flags (including pride flag)
+            0x1F3F3, 0x1F3F4,
+
+            // Skulls/Death
+            0x1F480, 0x2620, 0x1F571,
+
+            // Romance/Kiss
+            0x1F48B, 0x1F444, 0x1F48F, 0x1F491, 0x1F498, 0x1F49D, 0x1F496, 0x1F497, 0x1F493, 0x1F49E, 0x1F495, 0x1F49F,
+            0x2763, 0x1F5A4, 0x2764, 0x1F9E1, 0x1F49B, 0x1F49A, 0x1F499, 0x1F49C,
+
+            // Body parts
+            0x1F445, 0x1F444, 0x1F48B,
+
+            // Money
+            0x1F4B0, 0x1F4B4, 0x1F4B5, 0x1F4B6, 0x1F4B7, 0x1F4B8, 0x1F4B3, 0x1F4B9,
+
+            // Miscellaneous inappropriate
+            0x1F608, 0x1F47F, 0x1F921, 0x1F4A6, 0x1F525, 0x1F4A5,
+            0x1F916, 0x1F308, // robot, rainbow
+        ]);
+
+        function getRandomSafeEmoji() {
+            let attempts = 0;
+            while (attempts < 50) {
+                const range = EMOJI_RANGES[Math.floor(Math.random() * EMOJI_RANGES.length)];
+                const codePoint = range[0] + Math.floor(Math.random() * (range[1] - range[0] + 1));
+                if (!BLOCKED_EMOJI.has(codePoint)) {
+                    return String.fromCodePoint(codePoint);
+                }
+                attempts++;
+            }
+            return String.fromCodePoint(0x1F600);
+        }
+
+        class Game1Hieroglyph {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * game1Width;
+                this.y = Math.random() * game1Height;
+                this.char = hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
+                const sizes = [20, 35, 50];
+                this.size = sizes[Math.floor(Math.random() * sizes.length)];
+                this.opacity = 0;
+                this.targetOpacity = 0.3 + Math.random() * 0.7;
+                this.pulseSpeed = 0.001 + Math.random() * 0.002;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.cycleSpeed = 0.01 + Math.random() * 0.02;
+                this.cycleCounter = 0;
+                this.fadeIn = true;
+                this.fadeSpeed = 0.01 + Math.random() * 0.02;
+                this.lifetime = 5000 + Math.random() * 10000;
+                this.age = 0;
+                this.active = true;
+            }
+
+            update(dt) {
+                if (!this.active) return;
+
+                this.age += dt;
+
+                if (this.fadeIn && this.opacity < this.targetOpacity) {
+                    this.opacity += this.fadeSpeed * dt / 16;
+                    if (this.opacity >= this.targetOpacity) {
+                        this.fadeIn = false;
+                    }
+                }
+
+                if (this.age > this.lifetime - 1000) {
+                    this.opacity -= 0.001 * dt;
+                    if (this.opacity <= 0) {
+                        this.active = false;
+                        return;
+                    }
+                }
+
+                this.pulsePhase += this.pulseSpeed * dt;
+
+                this.cycleCounter += this.cycleSpeed * dt;
+                if (this.cycleCounter >= 1) {
+                    this.cycleCounter = 0;
+                    if (Math.random() > 0.5) {
+                        this.char = hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
+                    }
+                }
+            }
+
+            draw() {
+                if (!this.active || this.opacity <= 0) return;
+
+                const pulse = Math.sin(this.pulsePhase) * 0.15 + 0.85;
+                const finalOpacity = this.opacity * pulse;
+
+                game1Ctx.save();
+                game1Ctx.globalAlpha = finalOpacity;
+                game1Ctx.font = `${this.size}px "Noto Sans Egyptian Hieroglyphs", serif`;
+                game1Ctx.fillStyle = '#d4af37';
+                game1Ctx.textAlign = 'center';
+                game1Ctx.textBaseline = 'middle';
+                game1Ctx.fillText(this.char, this.x, this.y);
+                game1Ctx.restore();
+            }
+        }
+
+        class FallingEmoji {
+            constructor() {
+                this.reset();
+            }
+
+            reset(startFalling = true) {
+                this.x = Math.random() * (game1Width - 60) + 30;
+                this.y = startFalling ? -50 : 0;
+                this.char = getRandomSafeEmoji();
+                this.size = 30 + Math.random() * 30;
+                this.speed = 0.15 + Math.random() * 0.15;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.003;
+                this.active = true;
+                this.exploding = false;
+                this.explosionProgress = 0;
+            }
+
+            update(dt) {
+                if (!this.active) return;
+
+                if (this.exploding) {
+                    this.explosionProgress += 0.05 * dt / 16;
+                    this.rotation += 0.2 * dt / 16;
+                    if (this.explosionProgress >= 1) {
+                        this.active = false;
+                    }
+                    return;
+                }
+
+                this.y += this.speed * dt;
+                this.rotation += this.rotationSpeed * dt;
+
+                if (this.y > game1Height + 100) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                if (!this.active) return;
+
+                game1Ctx.save();
+                game1Ctx.translate(this.x, this.y);
+                game1Ctx.rotate(this.rotation);
+
+                if (this.exploding) {
+                    const scale = 1 + this.explosionProgress * 2;
+                    const alpha = 1 - this.explosionProgress;
+                    game1Ctx.scale(scale, scale);
+                    game1Ctx.globalAlpha = alpha;
+                    game1Ctx.font = `${this.size * 1.5}px sans-serif`;
+                } else {
+                    game1Ctx.font = `${this.size}px sans-serif`;
+                }
+
+                game1Ctx.textAlign = 'center';
+                game1Ctx.textBaseline = 'middle';
+                game1Ctx.fillText(this.exploding ? '💥' : this.char, 0, 0);
+                game1Ctx.restore();
+            }
+
+            checkHit(x, y) {
+                if (this.exploding || !this.active) return false;
+                const dx = x - this.x;
+                const dy = y - this.y;
+                return Math.sqrt(dx * dx + dy * dy) < this.size;
+            }
+
+            explode() {
+                this.exploding = true;
+                this.explosionProgress = 0;
+            }
+        }
+
+        class Game1CuneiformTicker {
+            constructor(side) {
+                this.side = side;
+                this.symbols = [];
+                this.offset = 0;
+                this.speed = 0.08;
+                this.barHeight = 40;
+                this.fontSize = 28;
+                this.generateSymbols();
+            }
+
+            generateSymbols() {
+                const numSymbols = this.side === 'left' || this.side === 'right' ? 50 : 100;
+                for (let i = 0; i < numSymbols; i++) {
+                    this.symbols.push(cuneiform[Math.floor(Math.random() * cuneiform.length)]);
+                }
+            }
+
+            update(dt) {
+                this.offset += this.speed * dt;
+
+                if (this.offset >= this.fontSize * 1.2) {
+                    this.offset = 0;
+                    this.symbols.push(cuneiform[Math.floor(Math.random() * cuneiform.length)]);
+                    if (this.symbols.length > (this.side === 'left' || this.side === 'right' ? 50 : 100)) {
+                        this.symbols.shift();
+                    }
+                }
+            }
+
+            draw() {
+                game1Ctx.save();
+
+                game1Ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
+                if (this.side === 'bottom') {
+                    game1Ctx.fillRect(0, game1Height - this.barHeight, game1Width, this.barHeight);
+                    this.drawHorizontal(game1Height - this.barHeight / 2, false);
+                } else if (this.side === 'top') {
+                    game1Ctx.fillRect(0, 0, game1Width, this.barHeight);
+                    this.drawHorizontal(this.barHeight / 2, true);
+                } else if (this.side === 'left') {
+                    game1Ctx.fillRect(0, 0, this.barHeight, game1Height);
+                    this.drawVertical(this.barHeight / 2, false);
+                } else if (this.side === 'right') {
+                    game1Ctx.fillRect(game1Width - this.barHeight, 0, this.barHeight, game1Height);
+                    this.drawVertical(game1Width - this.barHeight / 2, true);
+                }
+
+                game1Ctx.restore();
+            }
+
+            drawHorizontal(y, reverse) {
+                game1Ctx.font = `${this.fontSize}px "Noto Sans Cuneiform", serif`;
+                game1Ctx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                game1Ctx.textAlign = 'center';
+                game1Ctx.textBaseline = 'middle';
+
+                const charWidth = this.fontSize * 1.2;
+                const startX = reverse ? game1Width + this.offset : -this.offset;
+                const direction = reverse ? -1 : 1;
+
+                for (let i = 0; i < this.symbols.length; i++) {
+                    const x = startX + (i * charWidth * direction);
+                    if (x >= -charWidth && x <= game1Width + charWidth) {
+                        game1Ctx.fillText(this.symbols[i], x, y);
+                    }
+                }
+            }
+
+            drawVertical(x, reverse) {
+                game1Ctx.save();
+                game1Ctx.translate(x, 0);
+                game1Ctx.rotate(Math.PI / 2);
+
+                game1Ctx.font = `${this.fontSize}px "Noto Sans Cuneiform", serif`;
+                game1Ctx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                game1Ctx.textAlign = 'center';
+                game1Ctx.textBaseline = 'middle';
+
+                const charWidth = this.fontSize * 1.2;
+                const startY = reverse ? game1Height + this.offset : -this.offset;
+                const direction = reverse ? -1 : 1;
+
+                for (let i = 0; i < this.symbols.length; i++) {
+                    const y = startY + (i * charWidth * direction);
+                    if (y >= -charWidth && y <= game1Height + charWidth) {
+                        game1Ctx.fillText(this.symbols[i], y, 0);
+                    }
+                }
+
+                game1Ctx.restore();
+            }
+        }
+
+        const game1HieroglyphPool = [];
+        const game1EmojiPool = [];
+        const MAX_GAME1_HIEROGLYPHS = 50;
+        const MAX_GAME1_EMOJIS = 25;
+
+        let game1EmojiRainActive = false;
+        let game1LastEmojiSpawn = 0;
+        const GAME1_EMOJI_SPAWN_INTERVAL = 200;
+
+        for (let i = 0; i < MAX_GAME1_HIEROGLYPHS; i++) {
+            game1HieroglyphPool.push(new Game1Hieroglyph());
+        }
+
+        const game1Tickers = {
+            top: new Game1CuneiformTicker('top'),
+            bottom: new Game1CuneiformTicker('bottom'),
+            left: new Game1CuneiformTicker('left'),
+            right: new Game1CuneiformTicker('right')
+        };
+
+        let game1LastTime = performance.now();
+        let game1FrameCount = 0;
+        let game1LastFpsUpdate = game1LastTime;
+
+        function animateGame1(currentTime) {
+            if (currentScreen !== 'game1') return;
+            if (!game1Ctx) {
+                console.error('Game 1 context not available');
+                return;
+            }
+
+            game1AnimationId = requestAnimationFrame(animateGame1);
+
+            const dt = Math.min(currentTime - game1LastTime, 50);
+            game1LastTime = currentTime;
+
+            game1FrameCount++;
+            if (currentTime - game1LastFpsUpdate > 1000) {
+                const fpsEl = document.getElementById('game1-fps');
+                if (fpsEl) {
+                    fpsEl.textContent = `FPS: ${game1FrameCount}`;
+                }
+                game1FrameCount = 0;
+                game1LastFpsUpdate = currentTime;
+            }
+
+            game1Ctx.fillStyle = '#000';
+            game1Ctx.fillRect(0, 0, game1Width, game1Height);
+
+            for (let i = 0; i < game1HieroglyphPool.length; i++) {
+                game1HieroglyphPool[i].update(dt);
+                if (!game1HieroglyphPool[i].active) {
+                    game1HieroglyphPool[i].reset();
+                }
+            }
+
+            for (let i = 0; i < game1HieroglyphPool.length; i++) {
+                game1HieroglyphPool[i].draw();
+            }
+
+            if (game1EmojiRainActive && currentTime - game1LastEmojiSpawn > GAME1_EMOJI_SPAWN_INTERVAL) {
+                const activeCount = game1EmojiPool.filter(e => e.active).length;
+                if (activeCount < MAX_GAME1_EMOJIS) {
+                    let emoji = game1EmojiPool.find(e => !e.active);
+                    if (!emoji) {
+                        emoji = new FallingEmoji();
+                        game1EmojiPool.push(emoji);
+                    } else {
+                        emoji.reset(true);
+                    }
+                }
+                game1LastEmojiSpawn = currentTime;
+            }
+
+            for (let i = 0; i < game1EmojiPool.length; i++) {
+                game1EmojiPool[i].update(dt);
+                game1EmojiPool[i].draw();
+            }
+
+            game1Tickers.bottom.update(dt);
+            game1Tickers.top.update(dt);
+            game1Tickers.left.update(dt);
+            game1Tickers.right.update(dt);
+
+            game1Tickers.bottom.draw();
+            game1Tickers.top.draw();
+            game1Tickers.left.draw();
+            game1Tickers.right.draw();
+        }
+
+        function handleGame1Tap(x, y) {
+            if (!game1EmojiRainActive) {
+                game1EmojiRainActive = true;
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const emoji = new FallingEmoji();
+                        game1EmojiPool.push(emoji);
+                    }, i * 100);
+                }
+                return;
+            }
+
+            for (let i = game1EmojiPool.length - 1; i >= 0; i--) {
+                if (game1EmojiPool[i].checkHit(x, y)) {
+                    game1EmojiPool[i].explode();
+                    break;
+                }
+            }
+        }
+
+        game1Canvas.addEventListener('click', (e) => {
+            const rect = game1Canvas.getBoundingClientRect();
+            handleGame1Tap(e.clientX - rect.left, e.clientY - rect.top);
+        });
+
+        game1Canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = game1Canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            handleGame1Tap(touch.clientX - rect.left, touch.clientY - rect.top);
+        });
+
+        function startGame1() {
+            console.log('Starting game 1, game1Ctx:', game1Ctx, 'game1Width:', game1Width, 'game1Height:', game1Height);
+            if (!game1Ctx) {
+                console.error('Cannot start game 1 - no context');
+                return;
+            }
+            game1EmojiRainActive = false;
+            game1LastTime = performance.now();
+            animateGame1(game1LastTime);
+        }
+
+        // ===== GAME 2 =====
+        const game2EmojiList = ['😀', '😂', '🥰', '😎', '🤔', '😴', '🤯', '🥳', '😈', '👻', '💀', '👽', '🤖', '🎃', '😺', '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐈', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿', '🦔'];
+
+        let game2TargetEmojis = [];
+        let game2FoundEmojis = [];
+        let game2StartTime;
+        let game2Active = false;
+
+        const game2RestartBtn = document.getElementById('game2-restart-btn');
+        const game2MemorizePhase = document.getElementById('game2-memorize-phase');
+        const game2BlankPhase = document.getElementById('game2-blank-phase');
+        const game2FindPhase = document.getElementById('game2-find-phase');
+        const game2ResultPhase = document.getElementById('game2-result-phase');
+        const game2PlayAgainBtn = document.getElementById('game2-play-again-btn');
+
+        game2RestartBtn.addEventListener('click', startGame2);
+        game2PlayAgainBtn.addEventListener('click', startGame2);
+
+        function getRandomGame2Emoji() {
+            return game2EmojiList[Math.floor(Math.random() * game2EmojiList.length)];
+        }
+
+        function getRandomGame2Emojis(count) {
+            const selected = [];
+            const used = new Set();
+            while (selected.length < count) {
+                const emoji = getRandomGame2Emoji();
+                if (!used.has(emoji)) {
+                    selected.push(emoji);
+                    used.add(emoji);
+                }
+            }
+            return selected;
+        }
+
+        function startGame2() {
+            game2FoundEmojis = [];
+            game2Active = false;
+
+            game2MemorizePhase.classList.remove('hidden');
+            game2BlankPhase.classList.add('hidden');
+            game2FindPhase.classList.add('hidden');
+            game2ResultPhase.classList.add('hidden');
+            game2FindPhase.innerHTML = '';
+
+            game2TargetEmojis = getRandomGame2Emojis(3);
+
+            const emoji1El = document.getElementById('game2-emoji1');
+            const emoji2El = document.getElementById('game2-emoji2');
+            const emoji3El = document.getElementById('game2-emoji3');
+
+            emoji1El.textContent = game2TargetEmojis[0];
+            emoji2El.textContent = game2TargetEmojis[1];
+            emoji3El.textContent = game2TargetEmojis[2];
+
+            // Make all emojis visible and reset styles
+            emoji1El.style.opacity = '1';
+            emoji2El.style.opacity = '1';
+            emoji3El.style.opacity = '1';
+            emoji1El.style.visibility = 'visible';
+            emoji2El.style.visibility = 'visible';
+            emoji3El.style.visibility = 'visible';
+
+            document.querySelectorAll('.game2-emoji-large').forEach(el => {
+                el.classList.remove('blink');
+            });
+
+            // Show emojis for 2 seconds
+            setTimeout(() => {
+                // First emoji blinks with countdown 3
+                game2BlankPhase.textContent = '3';
+                game2BlankPhase.classList.remove('hidden');
+                emoji1El.classList.add('blink');
+
+                // Wait for blink to complete (1.5s for 3 blinks at 0.5s each)
+                setTimeout(() => {
+                    emoji1El.style.visibility = 'hidden';
+                    emoji1El.classList.remove('blink');
+                    game2BlankPhase.classList.add('hidden');
+
+                    // Small delay, then second emoji blinks with countdown 2
+                    setTimeout(() => {
+                        game2BlankPhase.textContent = '2';
+                        game2BlankPhase.classList.remove('hidden');
+                        emoji2El.classList.add('blink');
+
+                        setTimeout(() => {
+                            emoji2El.style.visibility = 'hidden';
+                            emoji2El.classList.remove('blink');
+                            game2BlankPhase.classList.add('hidden');
+
+                            // Small delay, then third emoji blinks with countdown 1
+                            setTimeout(() => {
+                                game2BlankPhase.textContent = '1';
+                                game2BlankPhase.classList.remove('hidden');
+                                emoji3El.classList.add('blink');
+
+                                setTimeout(() => {
+                                    emoji3El.style.visibility = 'hidden';
+                                    emoji3El.classList.remove('blink');
+
+                                    // Hide everything and start game
+                                    setTimeout(() => {
+                                        game2MemorizePhase.classList.add('hidden');
+                                        game2BlankPhase.classList.add('hidden');
+                                        startGame2FindPhase();
+                                    }, 300);
+                                }, 1500); // Wait for 3 full blinks
+                            }, 200); // Small delay before emoji 3
+                        }, 1500); // Wait for 3 full blinks
+                    }, 200); // Small delay before emoji 2
+                }, 1500); // Wait for 3 full blinks
+            }, 2000); // Initial display time
+        }
+
+        function startGame2FindPhase() {
+            game2FindPhase.classList.remove('hidden');
+            game2FindPhase.style.display = 'flex';
+
+            // Calculate how many emojis fit on screen (accounting for gap and padding)
+            const emojiSize = 40; // font size (reduced from 48)
+            const gap = 8; // gap between emojis
+
+            // Total space one emoji takes up
+            const totalEmojiWidth = emojiSize + gap;
+            const totalEmojiHeight = emojiSize + gap;
+
+            // Available space (conservative padding)
+            const paddingLeft = 10;
+            const paddingRight = 10;
+            const paddingTop = 80; // for buttons
+            const paddingBottom = 10;
+
+            const containerWidth = window.innerWidth - paddingLeft - paddingRight;
+            const containerHeight = window.innerHeight - paddingTop - paddingBottom;
+
+            // Calculate grid (subtract one gap since last row/col doesn't need gap after it)
+            const cols = Math.floor((containerWidth + gap) / totalEmojiWidth);
+            const rows = Math.floor((containerHeight + gap) / totalEmojiHeight);
+
+            // Only create emojis that will fit on screen
+            const totalSlots = cols * rows;
+
+            console.log('Game2 grid:', cols, 'cols x', rows, 'rows =', totalSlots, 'total slots');
+            console.log('Container:', containerWidth, 'x', containerHeight, 'Emoji+gap:', totalEmojiWidth, 'x', totalEmojiHeight);
+
+            // Step 1: Fill entire grid with random emojis (avoiding the 3 target emojis)
+            const gridEmojis = [];
+            for (let i = 0; i < totalSlots; i++) {
+                let randomEmoji;
+                do {
+                    randomEmoji = getRandomGame2Emoji();
+                } while (game2TargetEmojis.includes(randomEmoji));
+                gridEmojis.push(randomEmoji);
+            }
+
+            // Step 2: Pick 3 random positions to place the target emojis
+            const usedPositions = new Set();
+            for (let i = 0; i < 3; i++) {
+                let randomPosition;
+                do {
+                    randomPosition = Math.floor(Math.random() * totalSlots);
+                } while (usedPositions.has(randomPosition));
+
+                usedPositions.add(randomPosition);
+                gridEmojis[randomPosition] = game2TargetEmojis[i];
+            }
+
+            console.log('Placed target emojis at positions:', Array.from(usedPositions));
+
+            // Step 3: Create emoji elements from the grid
+            gridEmojis.forEach((emoji, index) => {
+                const emojiEl = document.createElement('div');
+                emojiEl.className = 'game2-emoji-small';
+                emojiEl.textContent = emoji;
+                emojiEl.dataset.emoji = emoji;
+                emojiEl.addEventListener('click', handleGame2EmojiClick);
+                game2FindPhase.appendChild(emojiEl);
+            });
+
+            game2StartTime = Date.now();
+            game2Active = true;
+        }
+
+        function handleGame2EmojiClick(e) {
+            if (!game2Active) return;
+
+            const clickedEmoji = e.target.dataset.emoji;
+
+            if (game2TargetEmojis.includes(clickedEmoji) && !game2FoundEmojis.includes(clickedEmoji)) {
+                game2FoundEmojis.push(clickedEmoji);
+                e.target.classList.add('found');
+
+                if (game2FoundEmojis.length === 3) {
+                    game2Active = false;
+                    const endTime = Date.now();
+                    const timeTaken = ((endTime - game2StartTime) / 1000).toFixed(2);
+                    showGame2Result(timeTaken);
+                }
+            } else {
+                showGame2Boom(e.target);
+            }
+        }
+
+        function showGame2Boom(targetElement) {
+            const boom = document.createElement('div');
+            boom.className = 'game2-boom';
+            boom.textContent = '💥';
+
+            // Get the center of the clicked emoji element
+            const rect = targetElement.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            boom.style.left = centerX + 'px';
+            boom.style.top = centerY + 'px';
+            document.body.appendChild(boom);
+
+            setTimeout(() => {
+                boom.remove();
+            }, 500);
+        }
+
+        function showGame2Result(time) {
+            setTimeout(() => {
+                game2FindPhase.classList.add('hidden');
+                game2ResultPhase.classList.remove('hidden');
+                game2ResultPhase.style.display = 'flex';
+                document.getElementById('game2-time-display').textContent = `Time: ${time} seconds`;
+            }, 500);
+        }
+
+        // ===== GAME 3 =====
+        const game3Emojis = [
+            '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
+            '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩',
+            '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪',
+            '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨',
+            '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥',
+            '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕',
+            '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯',
+            '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁',
+            '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧',
+            '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣',
+            '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠',
+            '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹',
+            '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹',
+            '🎃', '🎄', '🎁', '🎈', '🎉', '🎊', '🎋', '🎍',
+            '🍎', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍒',
+            '🌸', '🌺', '🌻', '🌹', '🌷', '🌼', '💐', '🌵'
+        ];
+
+        const game3SmileEmoji = '😊';
+        const game3GridColumns = 15;
+        const game3GridRows = 10;
+        let game3Cells = [];
+        let game3ActiveRipples = {};
+
+        function generateGame3EmojiGrid() {
+            const grid = document.getElementById('game3-emoji-grid');
+            const numberOfEmojis = game3GridColumns * game3GridRows;
+
+            for (let i = 0; i < numberOfEmojis; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'game3-emoji-cell';
+                const randomEmoji = game3Emojis[Math.floor(Math.random() * game3Emojis.length)];
+                cell.textContent = randomEmoji;
+                cell.dataset.originalEmoji = randomEmoji;
+                cell.dataset.index = i;
+
+                cell.addEventListener('click', function(e) {
+                    const index = parseInt(this.dataset.index);
+                    createGame3Ripple(index);
+                });
+
+                grid.appendChild(cell);
+                game3Cells.push(cell);
+            }
+        }
+
+        function getGame3Position(index) {
+            return {
+                row: Math.floor(index / game3GridColumns),
+                col: index % game3GridColumns
+            };
+        }
+
+        function getGame3Index(row, col) {
+            if (row < 0 || row >= game3GridRows || col < 0 || col >= game3GridColumns) {
+                return -1;
+            }
+            return row * game3GridColumns + col;
+        }
+
+        function getGame3Distance(pos1, pos2) {
+            return Math.max(Math.abs(pos1.row - pos2.row), Math.abs(pos1.col - pos2.col));
+        }
+
+        function getGame3CellsByDistance(originIndex) {
+            const originPos = getGame3Position(originIndex);
+            const distanceGroups = {};
+
+            game3Cells.forEach((cell, index) => {
+                const pos = getGame3Position(index);
+                const distance = getGame3Distance(originPos, pos);
+
+                if (!distanceGroups[distance]) {
+                    distanceGroups[distance] = [];
+                }
+                distanceGroups[distance].push(index);
+            });
+
+            return distanceGroups;
+        }
+
+        function createGame3Ripple(clickedIndex) {
+            const distanceGroups = getGame3CellsByDistance(clickedIndex);
+            const maxDistance = Math.max(...Object.keys(distanceGroups).map(Number));
+
+            for (let distance = 0; distance <= maxDistance; distance++) {
+                const cellIndices = distanceGroups[distance];
+
+                setTimeout(() => {
+                    cellIndices.forEach(index => {
+                        if (!game3ActiveRipples[index]) {
+                            game3ActiveRipples[index] = 0;
+                        }
+                        game3ActiveRipples[index]++;
+
+                        game3Cells[index].textContent = game3SmileEmoji;
+                    });
+                }, distance * 150);
+
+                setTimeout(() => {
+                    cellIndices.forEach(index => {
+                        game3ActiveRipples[index]--;
+
+                        if (game3ActiveRipples[index] <= 0) {
+                            game3ActiveRipples[index] = 0;
+                            game3Cells[index].textContent = game3Cells[index].dataset.originalEmoji;
+                        }
+                    });
+                }, (distance + 1) * 150);
+            }
+        }
+
+        function initGame3() {
+            generateGame3EmojiGrid();
+        }
+
+        // ===== GAME 4 =====
+        const game4Canvas = document.getElementById('game4-canvas');
+        if (!game4Canvas) {
+            console.error('Game 4 canvas not found!');
+        }
+        const game4Ctx = game4Canvas ? game4Canvas.getContext('2d', { alpha: false }) : null;
+        let game4Width, game4Height;
+
+        function resizeGame4Canvas() {
+            game4Width = window.innerWidth;
+            game4Height = window.innerHeight;
+            if (game4Canvas) {
+                game4Canvas.width = game4Width;
+                game4Canvas.height = game4Height;
+                console.log('Game4 canvas resized to:', game4Width, 'x', game4Height);
+            }
+        }
+
+        if (game4Canvas) {
+            resizeGame4Canvas();
+        }
+        window.addEventListener('resize', resizeGame4Canvas);
+
+        // Exploding emoji class
+        class ExplodingEmoji {
+            constructor(x, y, angle, emoji) {
+                this.x = x;
+                this.y = y;
+                this.angle = angle;
+                this.char = emoji;
+                this.speed = 3 + Math.random() * 4; // Faster speed (was 2-5, now 3-7)
+                this.size = 25 + Math.random() * 15;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.05;
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.rotation += this.rotationSpeed;
+            }
+
+            draw() {
+                game4Ctx.save();
+                game4Ctx.translate(this.x, this.y);
+                game4Ctx.rotate(this.rotation);
+                game4Ctx.font = `${this.size}px sans-serif`;
+                game4Ctx.textAlign = 'center';
+                game4Ctx.textBaseline = 'middle';
+                game4Ctx.fillText(this.char, 0, 0);
+                game4Ctx.restore();
+            }
+
+            isDead() {
+                // Check if off-screen (with a small margin)
+                const margin = 100;
+                return this.x < -margin ||
+                       this.x > game4Width + margin ||
+                       this.y < -margin ||
+                       this.y > game4Height + margin;
+            }
+        }
+
+        // Use same hieroglyph classes as menu
+        class Game4Hieroglyph {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * game4Width;
+                this.y = Math.random() * game4Height;
+                this.char = hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
+                const sizes = [20, 35, 50];
+                this.size = sizes[Math.floor(Math.random() * sizes.length)];
+                this.opacity = 0;
+                this.targetOpacity = 0.3 + Math.random() * 0.7;
+                this.pulseSpeed = 0.001 + Math.random() * 0.002;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.002;
+                this.fadeIn = true;
+                this.fadeSpeed = 0.01 + Math.random() * 0.02;
+                this.lifetime = 5000 + Math.random() * 10000;
+                this.age = 0;
+                this.active = true;
+            }
+
+            update(dt) {
+                if (!this.active) return;
+
+                this.age += dt;
+
+                if (this.fadeIn && this.opacity < this.targetOpacity) {
+                    this.opacity += this.fadeSpeed * dt / 16;
+                    if (this.opacity >= this.targetOpacity) {
+                        this.fadeIn = false;
+                    }
+                }
+
+                if (this.age > this.lifetime - 1000) {
+                    this.opacity -= 0.001 * dt;
+                    if (this.opacity <= 0) {
+                        this.active = false;
+                        return;
+                    }
+                }
+
+                this.pulsePhase += this.pulseSpeed * dt;
+                this.rotation += this.rotationSpeed * dt;
+            }
+
+            draw() {
+                if (!this.active || this.opacity <= 0) return;
+
+                const pulse = Math.sin(this.pulsePhase) * 0.15 + 0.85;
+                const finalOpacity = this.opacity * pulse;
+
+                game4Ctx.save();
+                game4Ctx.translate(this.x, this.y);
+                game4Ctx.rotate(this.rotation);
+                game4Ctx.globalAlpha = finalOpacity;
+                game4Ctx.font = `${this.size}px "Noto Sans Egyptian Hieroglyphs", serif`;
+                game4Ctx.fillStyle = '#d4af37';
+                game4Ctx.textAlign = 'center';
+                game4Ctx.textBaseline = 'middle';
+                game4Ctx.fillText(this.char, 0, 0);
+                game4Ctx.restore();
+            }
+        }
+
+        class Game4CuneiformTicker {
+            constructor(side) {
+                this.side = side;
+                this.symbols = [];
+                this.offset = 0;
+                this.speed = 0.08;
+                this.barHeight = 40;
+                this.fontSize = 28;
+                this.generateSymbols();
+            }
+
+            generateSymbols() {
+                // Reduced symbol count for better performance
+                const numSymbols = this.side === 'left' || this.side === 'right' ? 30 : 60;
+                for (let i = 0; i < numSymbols; i++) {
+                    this.symbols.push(cuneiform[Math.floor(Math.random() * cuneiform.length)]);
+                }
+            }
+
+            update(dt) {
+                this.offset += this.speed * dt;
+
+                if (this.offset >= this.fontSize * 1.2) {
+                    this.offset = 0;
+                    this.symbols.push(cuneiform[Math.floor(Math.random() * cuneiform.length)]);
+                    const maxSymbols = this.side === 'left' || this.side === 'right' ? 30 : 60;
+                    if (this.symbols.length > maxSymbols) {
+                        this.symbols.shift();
+                    }
+                }
+            }
+
+            draw() {
+                game4Ctx.save();
+
+                game4Ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
+                if (this.side === 'bottom') {
+                    game4Ctx.fillRect(0, game4Height - this.barHeight, game4Width, this.barHeight);
+                    this.drawHorizontal(game4Height - this.barHeight / 2, false);
+                } else if (this.side === 'top') {
+                    game4Ctx.fillRect(0, 0, game4Width, this.barHeight);
+                    this.drawHorizontal(this.barHeight / 2, true);
+                } else if (this.side === 'left') {
+                    game4Ctx.fillRect(0, 0, this.barHeight, game4Height);
+                    this.drawVertical(this.barHeight / 2, false);
+                } else if (this.side === 'right') {
+                    game4Ctx.fillRect(game4Width - this.barHeight, 0, this.barHeight, game4Height);
+                    this.drawVertical(game4Width - this.barHeight / 2, true);
+                }
+
+                game4Ctx.restore();
+            }
+
+            drawHorizontal(y, reverse) {
+                game4Ctx.font = `${this.fontSize}px "Noto Sans Cuneiform", serif`;
+                game4Ctx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                game4Ctx.textAlign = 'center';
+                game4Ctx.textBaseline = 'middle';
+
+                const charWidth = this.fontSize * 1.2;
+                const startX = reverse ? game4Width + this.offset : -this.offset;
+                const direction = reverse ? -1 : 1;
+
+                for (let i = 0; i < this.symbols.length; i++) {
+                    const x = startX + (i * charWidth * direction);
+                    if (x >= -charWidth && x <= game4Width + charWidth) {
+                        game4Ctx.fillText(this.symbols[i], x, y);
+                    }
+                }
+            }
+
+            drawVertical(x, reverse) {
+                game4Ctx.save();
+                game4Ctx.translate(x, 0);
+                game4Ctx.rotate(Math.PI / 2);
+
+                game4Ctx.font = `${this.fontSize}px "Noto Sans Cuneiform", serif`;
+                game4Ctx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                game4Ctx.textAlign = 'center';
+                game4Ctx.textBaseline = 'middle';
+
+                const charWidth = this.fontSize * 1.2;
+                const startY = reverse ? game4Height + this.offset : -this.offset;
+                const direction = reverse ? -1 : 1;
+
+                for (let i = 0; i < this.symbols.length; i++) {
+                    const y = startY + (i * charWidth * direction);
+                    if (y >= -charWidth && y <= game4Height + charWidth) {
+                        game4Ctx.fillText(this.symbols[i], y, 0);
+                    }
+                }
+
+                game4Ctx.restore();
+            }
+        }
+
+        const game4HieroglyphPool = [];
+        const game4ExplodingEmojis = [];
+        const MAX_GAME4_HIEROGLYPHS = 30; // Reduced from 50 for better performance
+        const MAX_EXPLODING_EMOJIS = 200; // Cap total particles
+
+        for (let i = 0; i < MAX_GAME4_HIEROGLYPHS; i++) {
+            game4HieroglyphPool.push(new Game4Hieroglyph());
+        }
+
+        const game4Tickers = {
+            top: new Game4CuneiformTicker('top'),
+            bottom: new Game4CuneiformTicker('bottom'),
+            left: new Game4CuneiformTicker('left'),
+            right: new Game4CuneiformTicker('right')
+        };
+
+        let game4LastTime = performance.now();
+
+        function animateGame4(currentTime) {
+            if (currentScreen !== 'game4') return;
+            if (!game4Ctx) {
+                console.error('Game 4 context not available');
+                return;
+            }
+
+            game4AnimationId = requestAnimationFrame(animateGame4);
+
+            const dt = Math.min(currentTime - game4LastTime, 50);
+            game4LastTime = currentTime;
+
+            // Clear screen
+            game4Ctx.fillStyle = '#000';
+            game4Ctx.fillRect(0, 0, game4Width, game4Height);
+
+            // Update and draw hieroglyphs
+            for (let i = 0; i < game4HieroglyphPool.length; i++) {
+                game4HieroglyphPool[i].update(dt);
+                if (!game4HieroglyphPool[i].active) {
+                    game4HieroglyphPool[i].reset();
+                }
+            }
+
+            for (let i = 0; i < game4HieroglyphPool.length; i++) {
+                game4HieroglyphPool[i].draw();
+            }
+
+            // Update and draw exploding emojis
+            for (let i = game4ExplodingEmojis.length - 1; i >= 0; i--) {
+                game4ExplodingEmojis[i].update();
+                game4ExplodingEmojis[i].draw();
+                if (game4ExplodingEmojis[i].isDead()) {
+                    game4ExplodingEmojis.splice(i, 1);
+                }
+            }
+
+            // Update and draw tickers
+            game4Tickers.bottom.update(dt);
+            game4Tickers.top.update(dt);
+            game4Tickers.left.update(dt);
+            game4Tickers.right.update(dt);
+
+            game4Tickers.bottom.draw();
+            game4Tickers.top.draw();
+            game4Tickers.left.draw();
+            game4Tickers.right.draw();
+        }
+
+        function createEmojiExplosion(x, y) {
+            // Don't create explosion if we're at the particle limit
+            if (game4ExplodingEmojis.length >= MAX_EXPLODING_EMOJIS) {
+                return;
+            }
+
+            const numEmojis = 8 + Math.floor(Math.random() * 4); // 8-12 emojis (reduced from 12-20)
+            const angleStep = (Math.PI * 2) / numEmojis;
+
+            for (let i = 0; i < numEmojis; i++) {
+                // Stop if we hit the limit
+                if (game4ExplodingEmojis.length >= MAX_EXPLODING_EMOJIS) {
+                    break;
+                }
+                const angle = angleStep * i;
+                const emoji = getRandomSafeEmoji();
+                game4ExplodingEmojis.push(new ExplodingEmoji(x, y, angle, emoji));
+            }
+        }
+
+        function handleGame4Touch(x, y) {
+            createEmojiExplosion(x, y);
+        }
+
+        // Mouse click
+        game4Canvas.addEventListener('click', (e) => {
+            const rect = game4Canvas.getBoundingClientRect();
+            handleGame4Touch(e.clientX - rect.left, e.clientY - rect.top);
+        });
+
+        // Multi-touch support
+        game4Canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = game4Canvas.getBoundingClientRect();
+
+            // Handle all touch points
+            for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                handleGame4Touch(touch.clientX - rect.left, touch.clientY - rect.top);
+            }
+        });
+
+        // Throttled touch movement to reduce particle spam
+        let game4LastTouchMove = 0;
+        const TOUCH_MOVE_THROTTLE = 100; // Only create explosions every 100ms while dragging
+
+        game4Canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const now = performance.now();
+
+            // Throttle to reduce performance impact
+            if (now - game4LastTouchMove < TOUCH_MOVE_THROTTLE) {
+                return;
+            }
+            game4LastTouchMove = now;
+
+            const rect = game4Canvas.getBoundingClientRect();
+
+            for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                handleGame4Touch(touch.clientX - rect.left, touch.clientY - rect.top);
+            }
+        });
+
+        function startGame4() {
+            console.log('Starting game 4, game4Ctx:', game4Ctx, 'game4Width:', game4Width, 'game4Height:', game4Height);
+            if (!game4Ctx) {
+                console.error('Cannot start game 4 - no context');
+                return;
+            }
+            // Clear any existing explosions
+            game4ExplodingEmojis.length = 0;
+            game4LastTime = performance.now();
+            animateGame4(game4LastTime);
+        }
+
         // ===== GAME 5 (GAME X - SOLAR SYSTEM) =====
         let game5Scene, game5Camera, game5Renderer, game5Controls;
         let game5Planets = [];
@@ -1064,56 +2261,45 @@
         let game5EmptySpaceClickCount = 0;
         const game5FlyingObjects = [];
 
-        // Create emoji texture for Three.js
         function createGame5EmojiTexture(emoji, size = 256) {
             const canvas = document.createElement('canvas');
             canvas.width = size;
             canvas.height = size;
             const ctx = canvas.getContext('2d');
-
             ctx.clearRect(0, 0, size, size);
             ctx.font = `${size * 0.9}px Arial, "Segoe UI Emoji", "Apple Color Emoji"`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(emoji, size / 2, size / 2);
-
             const texture = new THREE.CanvasTexture(canvas);
             texture.needsUpdate = true;
             return texture;
         }
 
-        // Create hieroglyph texture with golden glow
         function createGame5HieroglyphTexture(glyph, size = 256) {
             const canvas = document.createElement('canvas');
             canvas.width = size;
             canvas.height = size;
             const ctx = canvas.getContext('2d');
-
             ctx.clearRect(0, 0, size, size);
-
             ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
             ctx.beginPath();
             ctx.arc(size / 2, size / 2, size * 0.45, 0, Math.PI * 2);
             ctx.fill();
-
             ctx.fillStyle = '#FFD700';
             ctx.font = `${size * 0.85}px "Noto Sans Egyptian Hieroglyphs", "Segoe UI Historic", Arial, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-
             ctx.shadowColor = '#FFAA00';
             ctx.shadowBlur = 15;
             ctx.fillText(glyph, size / 2, size / 2);
-
             ctx.shadowBlur = 0;
             ctx.fillText(glyph, size / 2, size / 2);
-
             const texture = new THREE.CanvasTexture(canvas);
             texture.needsUpdate = true;
             return texture;
         }
 
-        // Get random safe Egyptian hieroglyph
         function getGame5RandomHieroglyph() {
             const hieroglyphs = [
                 '𓅓', '𓅔', '𓅕', '𓅖', '𓅗', '𓅘', '𓅙', '𓅚', '𓅛', '𓅜',
@@ -1125,59 +2311,44 @@
             return hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
         }
 
-        // Create emoji sphere for planets
         function createGame5EmojiSphere(emoji, radius, density) {
             const group = new THREE.Group();
             const emojiTexture = createGame5EmojiTexture(emoji, 256);
-
             const emojiCount = Math.floor(density * radius);
-
             for (let i = 0; i < emojiCount; i++) {
                 const phi = Math.acos(-1 + (2 * i) / emojiCount);
                 const theta = Math.sqrt(emojiCount * Math.PI) * phi;
-
                 const x = radius * Math.cos(theta) * Math.sin(phi);
                 const y = radius * Math.sin(theta) * Math.sin(phi);
                 const z = radius * Math.cos(phi);
-
                 const spriteMaterial = new THREE.SpriteMaterial({
                     map: emojiTexture,
                     transparent: true,
                     depthTest: true,
                     depthWrite: false
                 });
-
                 const sprite = new THREE.Sprite(spriteMaterial);
                 sprite.position.set(x, y, z);
-
                 const spriteScale = radius * 0.5;
                 sprite.scale.set(spriteScale, spriteScale, 1);
-
                 sprite.userData.originalPosition = new THREE.Vector3(x, y, z);
                 sprite.userData.baseRadius = radius;
-
                 group.add(sprite);
             }
-
             return group;
         }
 
-        // Create Planet X with hieroglyphs
         function createGame5PlanetX(radius, density) {
             const group = new THREE.Group();
             const glyphCount = Math.floor(density * radius);
-
             for (let i = 0; i < glyphCount; i++) {
                 const phi = Math.acos(-1 + (2 * i) / glyphCount);
                 const theta = Math.sqrt(glyphCount * Math.PI) * phi;
-
                 const x = radius * Math.cos(theta) * Math.sin(phi);
                 const y = radius * Math.sin(theta) * Math.sin(phi);
                 const z = radius * Math.cos(phi);
-
                 const glyph = getGame5RandomHieroglyph();
                 const glyphTexture = createGame5HieroglyphTexture(glyph, 256);
-
                 const spriteMaterial = new THREE.SpriteMaterial({
                     map: glyphTexture,
                     transparent: true,
@@ -1185,13 +2356,10 @@
                     depthWrite: false,
                     opacity: Math.random() * 0.5 + 0.5
                 });
-
                 const sprite = new THREE.Sprite(spriteMaterial);
                 sprite.position.set(x, y, z);
-
                 const spriteScale = radius * 0.8;
                 sprite.scale.set(spriteScale, spriteScale, 1);
-
                 sprite.userData = {
                     fadeDirection: Math.random() > 0.5 ? 1 : -1,
                     fadeSpeed: Math.random() * 0.01 + 0.005,
@@ -1199,459 +2367,271 @@
                     originalPosition: new THREE.Vector3(x, y, z),
                     baseRadius: radius
                 };
-
                 group.add(sprite);
             }
-
             return group;
         }
 
-        // Create orbit ring
         function createGame5OrbitRing(radius) {
-            const curve = new THREE.EllipseCurve(
-                0, 0,
-                radius, radius,
-                0, 2 * Math.PI,
-                false,
-                0
-            );
-
+            const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, 2 * Math.PI, false, 0);
             const points = curve.getPoints(100);
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({
-                color: 0x444444,
-                transparent: true,
-                opacity: 0.3
-            });
-
+            const material = new THREE.LineBasicMaterial({ color: 0x444444, transparent: true, opacity: 0.3 });
             const orbitRing = new THREE.Line(geometry, material);
             orbitRing.rotation.x = Math.PI / 2;
             return orbitRing;
         }
 
-        // Spawn rockets (every 5th click)
         function game5SpawnRockets(mousePos, cam) {
             const tempRaycaster = new THREE.Raycaster();
             tempRaycaster.setFromCamera(mousePos, cam);
-
             const clickPoint = new THREE.Vector3();
             clickPoint.copy(tempRaycaster.ray.direction).multiplyScalar(100).add(cam.position);
-
             const rocketCount = Math.floor(Math.random() * 5) + 8;
-
             for (let i = 0; i < rocketCount; i++) {
                 const rocketTexture = createGame5EmojiTexture('🚀', 128);
-                const rocketMaterial = new THREE.SpriteMaterial({
-                    map: rocketTexture,
-                    transparent: true,
-                    opacity: 1
-                });
-
+                const rocketMaterial = new THREE.SpriteMaterial({ map: rocketTexture, transparent: true, opacity: 1 });
                 const rocketSprite = new THREE.Sprite(rocketMaterial);
                 rocketSprite.position.copy(clickPoint);
                 rocketSprite.scale.set(2, 2, 1);
-
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos((Math.random() * 2) - 1);
                 const speed = Math.random() * 0.7 + 0.5;
-
                 const velocity = new THREE.Vector3(
                     Math.sin(phi) * Math.cos(theta) * speed,
                     Math.sin(phi) * Math.sin(theta) * speed,
                     Math.cos(phi) * speed
                 );
-
                 game5Scene.add(rocketSprite);
-
-                game5FlyingObjects.push({
-                    sprite: rocketSprite,
-                    velocity: velocity,
-                    life: 200,
-                    type: 'flying'
-                });
+                game5FlyingObjects.push({ sprite: rocketSprite, velocity: velocity, life: 200, type: 'flying' });
             }
         }
 
-        // Spawn glyph (all other clicks)
         function game5SpawnGlyph(mousePos, cam) {
             const tempRaycaster = new THREE.Raycaster();
             tempRaycaster.setFromCamera(mousePos, cam);
-
             const clickPoint = new THREE.Vector3();
             clickPoint.copy(tempRaycaster.ray.direction).multiplyScalar(100).add(cam.position);
-
             const glyphTexture = createGame5HieroglyphTexture(getGame5RandomHieroglyph(), 256);
-            const glyphMaterial = new THREE.SpriteMaterial({
-                map: glyphTexture,
-                transparent: true,
-                opacity: 1
-            });
-
+            const glyphMaterial = new THREE.SpriteMaterial({ map: glyphTexture, transparent: true, opacity: 1 });
             const glyphSprite = new THREE.Sprite(glyphMaterial);
             glyphSprite.position.copy(clickPoint);
             glyphSprite.scale.set(3, 3, 1);
-
             game5Scene.add(glyphSprite);
-
-            game5FlyingObjects.push({
-                sprite: glyphSprite,
-                velocity: new THREE.Vector3(0, 0, 0),
-                life: 150,
-                type: 'static'
-            });
+            game5FlyingObjects.push({ sprite: glyphSprite, velocity: new THREE.Vector3(0, 0, 0), life: 150, type: 'static' });
         }
 
         function initGame5() {
             const container = document.getElementById('game5-canvas-container');
-
-            // Scene setup
             game5Scene = new THREE.Scene();
             game5Camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-
-            game5Renderer = new THREE.WebGLRenderer({
-                antialias: true,
-                powerPreference: "high-performance",
-                precision: "mediump"
-            });
-
+            game5Renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             game5Renderer.setSize(window.innerWidth, window.innerHeight);
             game5Renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            game5Renderer.setClearColor(0x000000, 1);
+            container.innerHTML = '';
             container.appendChild(game5Renderer.domElement);
-
-            game5Renderer.domElement.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-            game5Renderer.domElement.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-            game5Renderer.domElement.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
-            game5Renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
-
-            game5Camera.position.set(0, 80, 150);
-            game5Camera.lookAt(0, 0, 0);
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            game5Scene.add(ambientLight);
-
-            const sunLight = new THREE.PointLight(0xffff99, 2, 800);
-            sunLight.position.set(0, 0, 0);
-            game5Scene.add(sunLight);
-
-            // Controls
             game5Controls = new THREE.OrbitControls(game5Camera, game5Renderer.domElement);
             game5Controls.enableDamping = true;
             game5Controls.dampingFactor = 0.05;
-            game5Controls.minDistance = 5;
-            game5Controls.maxDistance = 400;
-            game5Controls.enableZoom = true;
-            game5Controls.enablePan = true;
-            game5Controls.enableRotate = true;
+            game5Controls.minDistance = 10;
+            game5Controls.maxDistance = 500;
+            game5Controls.enablePan = false;
 
-            // Create Sun
-            game5Sun = createGame5EmojiSphere('☀️', 15, 5);
-            game5Sun.position.set(0, 0, 0);
+            // Create sun
+            game5Sun = createGame5EmojiSphere('☀️', 8, 15);
             game5Scene.add(game5Sun);
 
-            const sunGlowGeometry = new THREE.SphereGeometry(15, 32, 32);
-            const sunGlowMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffaa00,
-                transparent: true,
-                opacity: 0.15
-            });
-            const sunGlow = new THREE.Mesh(sunGlowGeometry, sunGlowMaterial);
-            game5Scene.add(sunGlow);
-
-            // Planet data
-            const planetsData = [
-                { name: 'Mercury', emoji: '🪨', size: 3, distance: 25, orbitSpeed: 4.7, rotationSpeed: 0.01 },
-                { name: 'Venus', emoji: '🟡', size: 4.5, distance: 35, orbitSpeed: 3.5, rotationSpeed: 0.008 },
-                { name: 'Earth', emoji: '🌍', size: 5, distance: 50, orbitSpeed: 3.0, rotationSpeed: 0.015 },
-                { name: 'Mars', emoji: '🔴', size: 4, distance: 65, orbitSpeed: 2.4, rotationSpeed: 0.014 },
-                { name: 'Jupiter', emoji: '🟠', size: 12, distance: 90, orbitSpeed: 1.3, rotationSpeed: 0.025 },
-                { name: 'Saturn', emoji: '🪐', size: 11, distance: 120, orbitSpeed: 0.97, rotationSpeed: 0.022 },
-                { name: 'Uranus', emoji: '🔵', size: 7, distance: 150, orbitSpeed: 0.68, rotationSpeed: 0.018 },
-                { name: 'Neptune', emoji: '💙', size: 7, distance: 180, orbitSpeed: 0.54, rotationSpeed: 0.017 }
+            // Create planets
+            game5Planets = [];
+            const planetData = [
+                { emoji: '🪨', radius: 1.5, distance: 20, speed: 0.02, name: 'Mercury' },
+                { emoji: '🌋', radius: 2.5, distance: 35, speed: 0.015, name: 'Venus' },
+                { emoji: '🌍', radius: 3, distance: 50, speed: 0.01, name: 'Earth' },
+                { emoji: '🔴', radius: 2.2, distance: 70, speed: 0.008, name: 'Mars' },
+                { emoji: '🟠', radius: 6, distance: 110, speed: 0.004, name: 'Jupiter' },
+                { emoji: '💍', radius: 5, distance: 150, speed: 0.003, name: 'Saturn' },
+                { emoji: '🧊', radius: 4, distance: 190, speed: 0.002, name: 'Uranus' },
+                { emoji: '🔵', radius: 3.8, distance: 230, speed: 0.0015, name: 'Neptune' },
+                { isPlanetX: true, radius: 4, distance: 280, speed: 0.001, name: 'Planet X' }
             ];
 
-            // Create planets
-            planetsData.forEach(planetData => {
-                const orbitRing = createGame5OrbitRing(planetData.distance);
+            planetData.forEach((data, index) => {
+                const orbitRing = createGame5OrbitRing(data.distance);
                 game5Scene.add(orbitRing);
-
-                const planetSphere = createGame5EmojiSphere(planetData.emoji, planetData.size, 6);
-                game5Scene.add(planetSphere);
-
+                let planetGroup;
+                if (data.isPlanetX) {
+                    planetGroup = createGame5PlanetX(data.radius, 12);
+                } else {
+                    planetGroup = createGame5EmojiSphere(data.emoji, data.radius, 10);
+                }
+                const orbitContainer = new THREE.Group();
+                orbitContainer.add(planetGroup);
+                planetGroup.position.x = data.distance;
+                game5Scene.add(orbitContainer);
                 game5Planets.push({
-                    mesh: planetSphere,
-                    distance: planetData.distance,
-                    orbitSpeed: planetData.orbitSpeed,
-                    rotationSpeed: planetData.rotationSpeed,
+                    container: orbitContainer,
+                    planet: planetGroup,
+                    distance: data.distance,
+                    speed: data.speed,
                     angle: Math.random() * Math.PI * 2,
-                    name: planetData.name,
-                    size: planetData.size,
-                    spinBoost: 0,
-                    isPlanetX: false
+                    name: data.name,
+                    radius: data.radius,
+                    isPlanetX: data.isPlanetX || false
                 });
             });
 
-            // Create Planet X
-            const planetXDistance = 210;
-            const planetXOrbit = createGame5OrbitRing(planetXDistance);
-            planetXOrbit.material.color.setHex(0xFFD700);
-            planetXOrbit.material.opacity = 0.5;
-            game5Scene.add(planetXOrbit);
-
-            const planetX = createGame5PlanetX(12, 8);
-            game5Scene.add(planetX);
-
-            game5Planets.push({
-                mesh: planetX,
-                distance: planetXDistance,
-                orbitSpeed: 0.3,
-                rotationSpeed: 0.01,
-                angle: 0,
-                name: 'Planet X',
-                size: 12,
-                spinBoost: 0,
-                isPlanetX: true
-            });
-
-            // Stars background
-            const starsGeometry = new THREE.BufferGeometry();
-            const starsMaterial = new THREE.PointsMaterial({
-                color: 0xffffff,
-                size: 0.7,
-                transparent: true
-            });
-
-            const starsVertices = [];
-            for (let i = 0; i < 2000; i++) {
-                const x = (Math.random() - 0.5) * 1500;
-                const y = (Math.random() - 0.5) * 1500;
-                const z = (Math.random() - 0.5) * 1500;
-                starsVertices.push(x, y, z);
+            // Create stars
+            const starGeometry = new THREE.BufferGeometry();
+            const starCount = 2000;
+            const starPositions = new Float32Array(starCount * 3);
+            for (let i = 0; i < starCount * 3; i += 3) {
+                const radius = 400 + Math.random() * 600;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                starPositions[i] = radius * Math.sin(phi) * Math.cos(theta);
+                starPositions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                starPositions[i + 2] = radius * Math.cos(phi);
             }
-
-            starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-            game5Stars = new THREE.Points(starsGeometry, starsMaterial);
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1, sizeAttenuation: true });
+            game5Stars = new THREE.Points(starGeometry, starMaterial);
             game5Scene.add(game5Stars);
 
-            // Raycaster for click detection
+            game5Camera.position.set(0, 100, 200);
+            game5Controls.target.set(0, 0, 0);
+            game5Controls.update();
+
+            // Add click handler
             const raycaster = new THREE.Raycaster();
-            raycaster.params.Sprite = { threshold: 2 };
             const mouse = new THREE.Vector2();
 
-            function onGame5MouseClick(event) {
-                let clientX, clientY;
-
-                if (event.type === 'touchend' || event.type === 'touchstart') {
-                    if (event.changedTouches && event.changedTouches.length > 0) {
-                        clientX = event.changedTouches[0].clientX;
-                        clientY = event.changedTouches[0].clientY;
-                    } else {
-                        return;
-                    }
-                } else {
-                    clientX = event.clientX;
-                    clientY = event.clientY;
-                }
-
-                mouse.x = (clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(clientY / window.innerHeight) * 2 + 1;
-
+            function onGame5Click(event) {
+                if (currentScreen !== 'game5') return;
+                const rect = game5Renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
                 raycaster.setFromCamera(mouse, game5Camera);
 
-                let planetClicked = false;
-
-                // Check for clicks on planets
-                game5Planets.forEach(planetObj => {
-                    const intersects = raycaster.intersectObjects(planetObj.mesh.children);
-                    if (intersects.length > 0) {
-                        planetClicked = true;
-
-                        if (game5FocusedPlanet !== planetObj && !game5IsTransitioning) {
-                            game5FocusedPlanet = planetObj;
-                            game5IsTransitioning = true;
-
-                            const distance = planetObj.size * 8;
-                            const direction = new THREE.Vector3()
-                                .subVectors(game5Camera.position, planetObj.mesh.position)
-                                .normalize();
-
-                            game5TargetCameraPosition = new THREE.Vector3()
-                                .copy(planetObj.mesh.position)
-                                .add(direction.multiplyScalar(distance));
-
-                            game5TargetLookAt = planetObj.mesh.position.clone();
-                        }
-
-                        planetObj.spinBoost += 0.3;
+                let clickedPlanet = null;
+                for (const planetObj of game5Planets) {
+                    const planetWorldPos = new THREE.Vector3();
+                    planetObj.planet.getWorldPosition(planetWorldPos);
+                    const distanceToRay = raycaster.ray.distanceToPoint(planetWorldPos);
+                    if (distanceToRay < planetObj.radius * 2) {
+                        clickedPlanet = planetObj;
+                        break;
                     }
-                });
-
-                // Check for click on sun
-                const sunIntersects = raycaster.intersectObjects(game5Sun.children);
-                if (sunIntersects.length > 0) {
-                    planetClicked = true;
-
-                    if ((!game5FocusedPlanet || game5FocusedPlanet.name !== 'Sun') && !game5IsTransitioning) {
-                        game5FocusedPlanet = { name: 'Sun', mesh: game5Sun, size: 15 };
-                        game5IsTransitioning = true;
-
-                        const distance = 120;
-                        const direction = new THREE.Vector3()
-                            .subVectors(game5Camera.position, game5Sun.position)
-                            .normalize();
-
-                        game5TargetCameraPosition = new THREE.Vector3()
-                            .copy(game5Sun.position)
-                            .add(direction.multiplyScalar(distance));
-
-                        game5TargetLookAt = game5Sun.position.clone();
-                    }
-
-                    game5Sun.rotation.y += 0.5;
+                }
+                // Check sun
+                const sunWorldPos = new THREE.Vector3();
+                game5Sun.getWorldPosition(sunWorldPos);
+                if (raycaster.ray.distanceToPoint(sunWorldPos) < 10) {
+                    clickedPlanet = { planet: game5Sun, name: 'Sun', radius: 8, isSun: true };
                 }
 
-                // If clicked empty space
-                if (!planetClicked) {
-                    if (game5FocusedPlanet && !game5IsTransitioning) {
-                        game5FocusedPlanet = null;
-                        game5TargetCameraPosition = null;
-                        game5TargetLookAt = null;
-                        game5IsTransitioning = false;
-                        game5Controls.enabled = true;
-                        game5Controls.enableZoom = true;
-                        game5Controls.enablePan = true;
-                        game5Controls.enableRotate = true;
-                        game5Controls.target.set(0, 0, 0);
-                    }
-
+                if (clickedPlanet) {
+                    game5EmptySpaceClickCount = 0;
+                    game5FocusedPlanet = clickedPlanet;
+                    game5IsTransitioning = true;
+                } else {
                     game5EmptySpaceClickCount++;
                     if (game5EmptySpaceClickCount % 5 === 0) {
                         game5SpawnRockets(mouse, game5Camera);
                     } else {
                         game5SpawnGlyph(mouse, game5Camera);
                     }
+                    if (game5FocusedPlanet) {
+                        game5FocusedPlanet = null;
+                        game5IsTransitioning = true;
+                        game5TargetCameraPosition = new THREE.Vector3(0, 100, 200);
+                        game5TargetLookAt = new THREE.Vector3(0, 0, 0);
+                    }
                 }
             }
+            game5Renderer.domElement.addEventListener('click', onGame5Click);
 
-            window.addEventListener('click', onGame5MouseClick, { passive: false });
-            window.addEventListener('touchend', onGame5MouseClick, { passive: false });
-
-            document.addEventListener('gesturestart', (e) => e.preventDefault());
-            document.addEventListener('gesturechange', (e) => e.preventDefault());
-            document.addEventListener('gestureend', (e) => e.preventDefault());
+            window.addEventListener('resize', () => {
+                if (currentScreen !== 'game5') return;
+                game5Camera.aspect = window.innerWidth / window.innerHeight;
+                game5Camera.updateProjectionMatrix();
+                game5Renderer.setSize(window.innerWidth, window.innerHeight);
+            });
         }
 
         function animateGame5() {
             if (currentScreen !== 'game5') return;
-
             game5AnimationId = requestAnimationFrame(animateGame5);
 
-            // Handle camera focusing animation
-            if (game5IsTransitioning && game5FocusedPlanet && game5TargetCameraPosition && game5TargetLookAt) {
-                if (game5FocusedPlanet.mesh) {
-                    const distance = game5FocusedPlanet.size * 8;
-                    const direction = new THREE.Vector3()
-                        .subVectors(game5Camera.position, game5FocusedPlanet.mesh.position)
-                        .normalize();
-
-                    game5TargetCameraPosition.copy(game5FocusedPlanet.mesh.position)
-                        .add(direction.multiplyScalar(distance));
-                    game5TargetLookAt.copy(game5FocusedPlanet.mesh.position);
-                }
-
-                game5Camera.position.lerp(game5TargetCameraPosition, game5FocusTransitionSpeed);
-                game5Controls.target.lerp(game5TargetLookAt, game5FocusTransitionSpeed);
-
-                const distanceToTarget = game5Camera.position.distanceTo(game5TargetCameraPosition);
-                if (distanceToTarget < 1) {
-                    game5IsTransitioning = false;
-                    game5FocusedPlanet = null;
-                    game5TargetCameraPosition = null;
-                    game5TargetLookAt = null;
-                }
-            }
-
-            game5Controls.update();
+            // Rotate sun
+            game5Sun.rotation.y += 0.002;
 
             // Update planets
             game5Planets.forEach(planetObj => {
-                planetObj.angle += planetObj.orbitSpeed * 0.001;
+                planetObj.angle += planetObj.speed;
+                planetObj.planet.position.x = Math.cos(planetObj.angle) * planetObj.distance;
+                planetObj.planet.position.z = Math.sin(planetObj.angle) * planetObj.distance;
+                planetObj.planet.rotation.y += 0.01;
 
-                const x = Math.cos(planetObj.angle) * planetObj.distance;
-                const z = Math.sin(planetObj.angle) * planetObj.distance;
-
-                planetObj.mesh.position.set(x, 0, z);
-
-                planetObj.mesh.rotation.y += planetObj.rotationSpeed + (planetObj.spinBoost * 0.3);
-
-                const expansionMultiplier = 1 + (planetObj.spinBoost * 6);
-
-                planetObj.mesh.children.forEach(sprite => {
-                    if (sprite.userData.originalPosition && sprite.userData.baseRadius) {
-                        const direction = sprite.userData.originalPosition.clone().normalize();
-                        const newRadius = sprite.userData.baseRadius * expansionMultiplier;
-                        sprite.position.copy(direction.multiplyScalar(newRadius));
-                    }
-                });
-
-                if (planetObj.spinBoost > 0) {
-                    planetObj.spinBoost *= 0.985;
-                }
-
-                // Special animation for Planet X hieroglyphs
+                // Update Planet X hieroglyphs
                 if (planetObj.isPlanetX) {
-                    planetObj.mesh.children.forEach(sprite => {
-                        sprite.material.opacity += sprite.userData.fadeDirection * sprite.userData.fadeSpeed;
-
-                        if (sprite.material.opacity >= 1.0) {
-                            sprite.material.opacity = 1.0;
-                            sprite.userData.fadeDirection = -1;
-                        } else if (sprite.material.opacity <= 0.2) {
-                            sprite.material.opacity = 0.2;
-                            sprite.userData.fadeDirection = 1;
-                        }
-
-                        sprite.userData.changeTimer--;
-                        if (sprite.userData.changeTimer <= 0) {
-                            const newGlyph = getGame5RandomHieroglyph();
-                            const newTexture = createGame5HieroglyphTexture(newGlyph, 256);
-                            sprite.material.map = newTexture;
-                            sprite.material.needsUpdate = true;
-
-                            sprite.userData.changeTimer = Math.random() * 300 + 200;
+                    planetObj.planet.children.forEach(sprite => {
+                        if (sprite.userData.fadeDirection) {
+                            sprite.material.opacity += sprite.userData.fadeDirection * sprite.userData.fadeSpeed;
+                            if (sprite.material.opacity >= 1) {
+                                sprite.userData.fadeDirection = -1;
+                            } else if (sprite.material.opacity <= 0.3) {
+                                sprite.userData.fadeDirection = 1;
+                            }
+                            sprite.userData.changeTimer--;
+                            if (sprite.userData.changeTimer <= 0) {
+                                sprite.userData.changeTimer = Math.random() * 200 + 100;
+                                const newGlyph = getGame5RandomHieroglyph();
+                                sprite.material.map = createGame5HieroglyphTexture(newGlyph, 256);
+                                sprite.material.needsUpdate = true;
+                            }
                         }
                     });
                 }
             });
 
-            // Sun rotation
-            game5Sun.rotation.y += 0.005;
-
-            // Stars rotation
-            game5Stars.rotation.y += 0.0001;
-
             // Update flying objects
             for (let i = game5FlyingObjects.length - 1; i >= 0; i--) {
                 const obj = game5FlyingObjects[i];
-
-                if (obj.type === 'flying') {
-                    obj.sprite.position.add(obj.velocity);
-                }
-
+                obj.sprite.position.add(obj.velocity);
                 obj.life--;
-                const maxLife = obj.type === 'flying' ? 200 : 150;
-                obj.sprite.material.opacity = obj.life / maxLife;
-
-                if (obj.life <= 0) {
+                if (obj.type === 'static') {
+                    obj.sprite.material.opacity -= 0.007;
+                } else {
+                    obj.sprite.material.opacity -= 0.005;
+                }
+                if (obj.life <= 0 || obj.sprite.material.opacity <= 0) {
                     game5Scene.remove(obj.sprite);
-                    obj.sprite.material.dispose();
-                    if (obj.sprite.material.map) {
-                        obj.sprite.material.map.dispose();
-                    }
                     game5FlyingObjects.splice(i, 1);
                 }
             }
 
+            // Camera transitions
+            if (game5IsTransitioning && game5FocusedPlanet) {
+                const targetPos = new THREE.Vector3();
+                game5FocusedPlanet.planet.getWorldPosition(targetPos);
+                const offset = game5FocusedPlanet.isSun ? 40 : game5FocusedPlanet.radius * 8;
+                game5TargetCameraPosition = targetPos.clone().add(new THREE.Vector3(offset, offset / 2, offset));
+                game5TargetLookAt = targetPos.clone();
+                game5Camera.position.lerp(game5TargetCameraPosition, game5FocusTransitionSpeed);
+                game5Controls.target.lerp(game5TargetLookAt, game5FocusTransitionSpeed);
+                if (game5Camera.position.distanceTo(game5TargetCameraPosition) < 1) {
+                    game5IsTransitioning = false;
+                }
+            } else if (game5IsTransitioning && !game5FocusedPlanet) {
+                game5Camera.position.lerp(game5TargetCameraPosition, game5FocusTransitionSpeed);
+                game5Controls.target.lerp(game5TargetLookAt, game5FocusTransitionSpeed);
+                if (game5Camera.position.distanceTo(game5TargetCameraPosition) < 1) {
+                    game5IsTransitioning = false;
+                }
+            }
+
+            game5Controls.update();
             game5Renderer.render(game5Scene, game5Camera);
         }
 
@@ -1662,34 +2642,565 @@
             animateGame5();
         }
 
-        // Handle resize
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (game5Camera && game5Renderer) {
-                    game5Camera.aspect = window.innerWidth / window.innerHeight;
-                    game5Camera.updateProjectionMatrix();
-                    game5Renderer.setSize(window.innerWidth, window.innerHeight);
-                    game5Renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // ===== GAME 6 =====
+        const game6Canvas = document.getElementById('game6-canvas');
+        if (!game6Canvas) {
+            console.error('Game 6 canvas not found!');
+        }
+        const game6Ctx = game6Canvas ? game6Canvas.getContext('2d', { alpha: false }) : null;
+        let game6Width, game6Height;
+
+        function resizeGame6Canvas() {
+            game6Width = window.innerWidth;
+            game6Height = window.innerHeight;
+            if (game6Canvas) {
+                game6Canvas.width = game6Width;
+                game6Canvas.height = game6Height;
+                console.log('Game6 canvas resized to:', game6Width, 'x', game6Height);
+            }
+        }
+
+        if (game6Canvas) {
+            resizeGame6Canvas();
+        }
+        window.addEventListener('resize', resizeGame6Canvas);
+
+        // Flying emoji particle (for explosion)
+        class Game6FlyingEmoji {
+            constructor(x, y, emoji) {
+                this.x = x;
+                this.y = y;
+                this.char = emoji;
+                this.size = 30 + Math.random() * 20;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 3 + Math.random() * 4;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.rotation += this.rotationSpeed;
+            }
+
+            draw() {
+                game6Ctx.save();
+                game6Ctx.translate(this.x, this.y);
+                game6Ctx.rotate(this.rotation);
+                game6Ctx.font = `${this.size}px sans-serif`;
+                game6Ctx.textAlign = 'center';
+                game6Ctx.textBaseline = 'middle';
+                game6Ctx.fillText(this.char, 0, 0);
+                game6Ctx.restore();
+            }
+
+            isDead() {
+                const margin = 100;
+                return this.x < -margin ||
+                       this.x > game6Width + margin ||
+                       this.y < -margin ||
+                       this.y > game6Height + margin;
+            }
+        }
+
+        // Emoji Person character
+        class EmojiPerson {
+            constructor(personType, direction) {
+                this.type = personType;
+                this.direction = direction; // 1 for right, -1 for left
+
+                // Start position based on direction
+                if (this.direction > 0) {
+                    this.x = -100; // Start from left
+                } else {
+                    this.x = game6Width + 100; // Start from right
                 }
-            }, 100);
+
+                this.y = game6Height / 2 + (Math.random() - 0.5) * 300;
+                this.speed = (0.5 + Math.random() * 0.5) * this.direction;
+                this.bobPhase = Math.random() * Math.PI * 2;
+                this.bobSpeed = 0.02;
+                this.active = true;
+
+                // Define different emoji people (many more variations!)
+                this.people = {
+                    'happy': {
+                        hat: '🎩',
+                        head: '😊',
+                        body: ['🟡', '🟡'],
+                        arms: ['👋', '👋'],
+                        legs: ['🟡', '🟡'],
+                        feet: ['👟', '👟']
+                    },
+                    'cool': {
+                        hat: '🧢',
+                        head: '😎',
+                        body: ['🔵', '🔵'],
+                        arms: ['🤙', '🤙'],
+                        legs: ['🔵', '🔵'],
+                        feet: ['👟', '👟']
+                    },
+                    'nerd': {
+                        hat: '🎓',
+                        head: '🤓',
+                        body: ['📚', '📚'],
+                        arms: ['👍', '👍'],
+                        legs: ['📘', '📘'],
+                        feet: ['👞', '👞']
+                    },
+                    'party': {
+                        hat: '🎉',
+                        head: '🥳',
+                        body: ['🎊', '🎊'],
+                        arms: ['🎈', '🎈'],
+                        legs: ['🎊', '🎊'],
+                        feet: ['👠', '👠']
+                    },
+                    'sleepy': {
+                        hat: '😴',
+                        head: '😴',
+                        body: ['💤', '💤'],
+                        arms: ['🤚', '🤚'],
+                        legs: ['💤', '💤'],
+                        feet: ['🩴', '🩴']
+                    },
+                    'robot': {
+                        hat: '📡',
+                        head: '🤖',
+                        body: ['⚙️', '⚙️'],
+                        arms: ['🦾', '🦾'],
+                        legs: ['⚙️', '⚙️'],
+                        feet: ['🔩', '🔩']
+                    },
+                    'chef': {
+                        hat: '👨‍🍳',
+                        head: '😋',
+                        body: ['🍳', '🍳'],
+                        arms: ['🍴', '🍴'],
+                        legs: ['🥘', '🥘'],
+                        feet: ['👞', '👞']
+                    },
+                    'sports': {
+                        hat: '⚽',
+                        head: '💪',
+                        body: ['🏃', '🏃'],
+                        arms: ['🏀', '🏈'],
+                        legs: ['⚽', '⚽'],
+                        feet: ['👟', '👟']
+                    },
+                    'lightbulb': {
+                        hat: '🎩',
+                        head: '💡',
+                        body: ['💡', '💡'],
+                        arms: ['💡', '💡'],
+                        legs: ['💡', '💡'],
+                        feet: ['⚡', '⚡']
+                    },
+                    'fire': {
+                        hat: '👑',
+                        head: '🔥',
+                        body: ['🔥', '🔥'],
+                        arms: ['🔥', '🔥'],
+                        legs: ['🔥', '🔥'],
+                        feet: ['🌋', '🌋']
+                    },
+                    'plant': {
+                        hat: '🌺',
+                        head: '🌻',
+                        body: ['🌿', '🌿'],
+                        arms: ['🌱', '🌱'],
+                        legs: ['🌿', '🌿'],
+                        feet: ['🍄', '🍄']
+                    },
+                    'star': {
+                        hat: '👑',
+                        head: '⭐',
+                        body: ['✨', '✨'],
+                        arms: ['⭐', '⭐'],
+                        legs: ['✨', '✨'],
+                        feet: ['🌟', '🌟']
+                    },
+                    'sweet': {
+                        hat: '🎀',
+                        head: '🍬',
+                        body: ['🍭', '🍭'],
+                        arms: ['🍬', '🍬'],
+                        legs: ['🍭', '🍭'],
+                        feet: ['🍰', '🍰']
+                    },
+                    'music': {
+                        hat: '🎸',
+                        head: '🎵',
+                        body: ['🎸', '🎸'],
+                        arms: ['🎵', '🎵'],
+                        legs: ['🎶', '🎶'],
+                        feet: ['🎤', '🎤']
+                    },
+                    'ocean': {
+                        hat: '🏴‍☠️',
+                        head: '🐟',
+                        body: ['🌊', '🌊'],
+                        arms: ['🐚', '🐚'],
+                        legs: ['🌊', '🌊'],
+                        feet: ['⚓', '⚓']
+                    },
+                    'space': {
+                        hat: '🛸',
+                        head: '👾',
+                        body: ['🌙', '🪐'],
+                        arms: ['☄️', '☄️'],
+                        legs: ['🌙', '🪐'],
+                        feet: ['🚀', '🚀']
+                    },
+                    'weather': {
+                        hat: '☁️',
+                        head: '🌞',
+                        body: ['⛅', '⛅'],
+                        arms: ['🌈', '⚡'],
+                        legs: ['☁️', '☁️'],
+                        feet: ['❄️', '❄️']
+                    },
+                    'artist': {
+                        hat: '🎨',
+                        head: '😌',
+                        body: ['🖼️', '🖼️'],
+                        arms: ['🖌️', '✏️'],
+                        legs: ['🎨', '🎨'],
+                        feet: ['👠', '👠']
+                    },
+                    'magic': {
+                        hat: '🎩',
+                        head: '✨',
+                        body: ['🔮', '🔮'],
+                        arms: ['🪄', '🪄'],
+                        legs: ['✨', '✨'],
+                        feet: ['🌟', '🌟']
+                    },
+                    'pirate': {
+                        hat: '🏴‍☠️',
+                        head: '😈',
+                        body: ['⚔️', '⚔️'],
+                        arms: ['🗡️', '🪝'],
+                        legs: ['🦴', '🦴'],
+                        feet: ['🦜', '🦜']
+                    },
+                    'winter': {
+                        hat: '⛄',
+                        head: '🥶',
+                        body: ['❄️', '❄️'],
+                        arms: ['🧊', '🧊'],
+                        legs: ['❄️', '❄️'],
+                        feet: ['⛷️', '⛷️']
+                    },
+                    'fruit': {
+                        hat: '🍒',
+                        head: '🍎',
+                        body: ['🍊', '🍋'],
+                        arms: ['🍌', '🍉'],
+                        legs: ['🍇', '🍓'],
+                        feet: ['🍑', '🍑']
+                    },
+                    'tools': {
+                        hat: '⚒️',
+                        head: '🔧',
+                        body: ['🔨', '🔨'],
+                        arms: ['🪛', '🪚'],
+                        legs: ['🔩', '🔩'],
+                        feet: ['🥾', '🥾']
+                    },
+                    'gem': {
+                        hat: '👑',
+                        head: '💎',
+                        body: ['💍', '💍'],
+                        arms: ['💎', '💎'],
+                        legs: ['💍', '💍'],
+                        feet: ['👠', '👠']
+                    }
+                };
+
+                this.parts = this.people[this.type];
+            }
+
+            update(dt) {
+                if (!this.active) return;
+
+                this.x += this.speed * dt / 16;
+                this.bobPhase += this.bobSpeed * dt / 16;
+
+                // Remove when off screen (check both directions)
+                if (this.direction > 0 && this.x > game6Width + 100) {
+                    this.active = false;
+                } else if (this.direction < 0 && this.x < -100) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                if (!this.active) return;
+
+                const bobOffset = Math.sin(this.bobPhase) * 5;
+                const centerX = this.x;
+                const centerY = this.y + bobOffset;
+                const emojiSize = 40;
+
+                game6Ctx.save();
+                game6Ctx.font = `${emojiSize}px sans-serif`;
+                game6Ctx.textAlign = 'center';
+                game6Ctx.textBaseline = 'middle';
+
+                // Draw hat
+                game6Ctx.fillText(this.parts.hat, centerX, centerY - emojiSize * 2.5);
+
+                // Draw head
+                game6Ctx.fillText(this.parts.head, centerX, centerY - emojiSize * 1.5);
+
+                // Draw body
+                game6Ctx.fillText(this.parts.body[0], centerX, centerY - emojiSize * 0.5);
+                game6Ctx.fillText(this.parts.body[1], centerX, centerY + emojiSize * 0.5);
+
+                // Draw arms
+                const armBob = Math.sin(this.bobPhase * 2) * 3;
+                game6Ctx.fillText(this.parts.arms[0], centerX - emojiSize, centerY - emojiSize * 0.5 + armBob);
+                game6Ctx.fillText(this.parts.arms[1], centerX + emojiSize, centerY - emojiSize * 0.5 - armBob);
+
+                // Draw legs (with walking motion)
+                const legBob = Math.sin(this.bobPhase * 3) * 5;
+                game6Ctx.fillText(this.parts.legs[0], centerX - emojiSize * 0.3, centerY + emojiSize * 1.5 + legBob);
+                game6Ctx.fillText(this.parts.legs[1], centerX + emojiSize * 0.3, centerY + emojiSize * 1.5 - legBob);
+
+                // Draw feet
+                game6Ctx.fillText(this.parts.feet[0], centerX - emojiSize * 0.3, centerY + emojiSize * 2.5 + legBob);
+                game6Ctx.fillText(this.parts.feet[1], centerX + emojiSize * 0.3, centerY + emojiSize * 2.5 - legBob);
+
+                game6Ctx.restore();
+            }
+
+            checkHit(x, y) {
+                if (!this.active) return false;
+                const dx = x - this.x;
+                const dy = y - this.y;
+                return Math.sqrt(dx * dx + dy * dy) < 100;
+            }
+
+            explode() {
+                if (!this.active) return [];
+
+                const bobOffset = Math.sin(this.bobPhase) * 5;
+                const centerX = this.x;
+                const centerY = this.y + bobOffset;
+                const emojiSize = 40;
+
+                const particles = [];
+
+                // Create particles for each body part
+                particles.push(new Game6FlyingEmoji(centerX, centerY - emojiSize * 2.5, this.parts.hat));
+                particles.push(new Game6FlyingEmoji(centerX, centerY - emojiSize * 1.5, this.parts.head));
+                particles.push(new Game6FlyingEmoji(centerX, centerY - emojiSize * 0.5, this.parts.body[0]));
+                particles.push(new Game6FlyingEmoji(centerX, centerY + emojiSize * 0.5, this.parts.body[1]));
+                particles.push(new Game6FlyingEmoji(centerX - emojiSize, centerY - emojiSize * 0.5, this.parts.arms[0]));
+                particles.push(new Game6FlyingEmoji(centerX + emojiSize, centerY - emojiSize * 0.5, this.parts.arms[1]));
+                particles.push(new Game6FlyingEmoji(centerX - emojiSize * 0.3, centerY + emojiSize * 1.5, this.parts.legs[0]));
+                particles.push(new Game6FlyingEmoji(centerX + emojiSize * 0.3, centerY + emojiSize * 1.5, this.parts.legs[1]));
+                particles.push(new Game6FlyingEmoji(centerX - emojiSize * 0.3, centerY + emojiSize * 2.5, this.parts.feet[0]));
+                particles.push(new Game6FlyingEmoji(centerX + emojiSize * 0.3, centerY + emojiSize * 2.5, this.parts.feet[1]));
+
+                this.active = false;
+                return particles;
+            }
+        }
+
+        const game6People = [];
+        const game6Particles = [];
+        let game6LastSpawn = 0;
+        const GAME6_SPAWN_INTERVAL = 1500; // Spawn new person every 1.5 seconds
+        let game6LastTime = performance.now();
+
+        // Game 6 Hieroglyphs (same as menu/game1)
+        class Game6Hieroglyph {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * game6Width;
+                this.y = Math.random() * game6Height;
+                this.char = hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)];
+                const sizes = [20, 35, 50];
+                this.size = sizes[Math.floor(Math.random() * sizes.length)];
+                this.opacity = 0;
+                this.targetOpacity = 0.3 + Math.random() * 0.7;
+                this.pulseSpeed = 0.001 + Math.random() * 0.002;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.002;
+                this.fadeIn = true;
+                this.fadeSpeed = 0.01 + Math.random() * 0.02;
+                this.lifetime = 5000 + Math.random() * 10000;
+                this.age = 0;
+                this.active = true;
+            }
+
+            update(dt) {
+                if (!this.active) return;
+
+                this.age += dt;
+
+                if (this.fadeIn && this.opacity < this.targetOpacity) {
+                    this.opacity += this.fadeSpeed * dt / 16;
+                    if (this.opacity >= this.targetOpacity) {
+                        this.fadeIn = false;
+                    }
+                }
+
+                if (this.age > this.lifetime - 1000) {
+                    this.opacity -= 0.001 * dt;
+                    if (this.opacity <= 0) {
+                        this.active = false;
+                        return;
+                    }
+                }
+
+                this.pulsePhase += this.pulseSpeed * dt;
+                this.rotation += this.rotationSpeed * dt;
+            }
+
+            draw() {
+                if (!this.active || this.opacity <= 0) return;
+
+                const pulse = Math.sin(this.pulsePhase) * 0.15 + 0.85;
+                const finalOpacity = this.opacity * pulse;
+
+                game6Ctx.save();
+                game6Ctx.translate(this.x, this.y);
+                game6Ctx.rotate(this.rotation);
+                game6Ctx.globalAlpha = finalOpacity;
+                game6Ctx.font = `${this.size}px "Noto Sans Egyptian Hieroglyphs", serif`;
+                game6Ctx.fillStyle = '#d4af37';
+                game6Ctx.textAlign = 'center';
+                game6Ctx.textBaseline = 'middle';
+                game6Ctx.fillText(this.char, 0, 0);
+                game6Ctx.restore();
+            }
+        }
+
+        const game6HieroglyphPool = [];
+        const MAX_GAME6_HIEROGLYPHS = 50;
+
+        for (let i = 0; i < MAX_GAME6_HIEROGLYPHS; i++) {
+            game6HieroglyphPool.push(new Game6Hieroglyph());
+        }
+
+        function spawnRandomPerson() {
+            const types = [
+                'happy', 'cool', 'nerd', 'party', 'sleepy', 'robot', 'chef', 'sports',
+                'lightbulb', 'fire', 'plant', 'star', 'sweet', 'music', 'ocean', 'space',
+                'weather', 'artist', 'magic', 'pirate', 'winter', 'fruit', 'tools', 'gem'
+            ];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            const randomDirection = Math.random() > 0.5 ? 1 : -1; // Random direction
+            game6People.push(new EmojiPerson(randomType, randomDirection));
+        }
+
+        function animateGame6(currentTime) {
+            if (currentScreen !== 'game6') return;
+            if (!game6Ctx) {
+                console.error('Game 6 context not available');
+                return;
+            }
+
+            game6AnimationId = requestAnimationFrame(animateGame6);
+
+            const dt = Math.min(currentTime - game6LastTime, 50);
+            game6LastTime = currentTime;
+
+            // Clear screen with black
+            game6Ctx.fillStyle = '#000';
+            game6Ctx.fillRect(0, 0, game6Width, game6Height);
+
+            // Update and draw hieroglyphs background
+            for (let i = 0; i < game6HieroglyphPool.length; i++) {
+                game6HieroglyphPool[i].update(dt);
+                if (!game6HieroglyphPool[i].active) {
+                    game6HieroglyphPool[i].reset();
+                }
+            }
+
+            for (let i = 0; i < game6HieroglyphPool.length; i++) {
+                game6HieroglyphPool[i].draw();
+            }
+
+            // Spawn new people
+            if (currentTime - game6LastSpawn > GAME6_SPAWN_INTERVAL) {
+                spawnRandomPerson();
+                game6LastSpawn = currentTime;
+            }
+
+            // Update and draw people
+            for (let i = game6People.length - 1; i >= 0; i--) {
+                game6People[i].update(dt);
+                game6People[i].draw();
+                if (!game6People[i].active) {
+                    game6People.splice(i, 1);
+                }
+            }
+
+            // Update and draw particles
+            for (let i = game6Particles.length - 1; i >= 0; i--) {
+                game6Particles[i].update();
+                game6Particles[i].draw();
+                if (game6Particles[i].isDead()) {
+                    game6Particles.splice(i, 1);
+                }
+            }
+        }
+
+        function handleGame6Touch(x, y) {
+            for (let i = game6People.length - 1; i >= 0; i--) {
+                if (game6People[i].checkHit(x, y)) {
+                    const newParticles = game6People[i].explode();
+                    game6Particles.push(...newParticles);
+                    break;
+                }
+            }
+        }
+
+        game6Canvas.addEventListener('click', (e) => {
+            const rect = game6Canvas.getBoundingClientRect();
+            handleGame6Touch(e.clientX - rect.left, e.clientY - rect.top);
         });
 
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                if (game5Camera && game5Renderer) {
-                    game5Camera.aspect = window.innerWidth / window.innerHeight;
-                    game5Camera.updateProjectionMatrix();
-                    game5Renderer.setSize(window.innerWidth, window.innerHeight);
-                    game5Renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                }
-            }, 100);
+        game6Canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = game6Canvas.getBoundingClientRect();
+            for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                handleGame6Touch(touch.clientX - rect.left, touch.clientY - rect.top);
+            }
         });
-    </script>
 
-    <!-- Continue with Game 1, 2, 3, 4, 6 scripts from original file -->
-    <script>
+        function startGame6() {
+            console.log('Starting game 6, game6Ctx:', game6Ctx, 'game6Width:', game6Width, 'game6Height:', game6Height);
+            if (!game6Ctx) {
+                console.error('Cannot start game 6 - no context');
+                return;
+            }
+            // Clear any existing people and particles
+            game6People.length = 0;
+            game6Particles.length = 0;
+            game6LastSpawn = performance.now();
+            game6LastTime = performance.now();
+
+            // Spawn multiple people at start
+            for (let i = 0; i < 3; i++) {
+                spawnRandomPerson();
+            }
+
+            animateGame6(game6LastTime);
+        }
+
         // Start menu animation on load
         startMenuAnimation();
     </script>
